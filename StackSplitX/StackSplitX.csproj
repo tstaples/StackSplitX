@@ -44,10 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="StackSplitMenu.cs" />
     <Compile Include="StackSplitX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TInventoryMenu.cs" />
-    <Compile Include="TInventoryPage.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
