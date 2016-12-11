@@ -176,6 +176,11 @@ namespace StackSplitX
             // TODO: handle highlighting and stuff
         }
 
+        public bool ContainsPoint(float x, float y)
+        {
+            return (x >= this.Position.X && y >= this.Position.Y && x <= this.Extent.X && y <= this.Extent.Y);
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             // Part of the spritesheet containing the texture we want to draw

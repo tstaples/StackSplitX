@@ -78,6 +78,11 @@ namespace StackSplitX
             }
         }
 
+        public bool ContainsPoint(int x, int y)
+        {
+            return (this.OKButton.containsPoint(x, y) || this.InputTextBox.ContainsPoint(x, y));
+        }
+
         public void Update()
         {
             this.InputTextBox.Update();

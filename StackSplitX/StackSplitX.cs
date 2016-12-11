@@ -82,7 +82,7 @@ namespace StackSplitX
             if (e.NewState.RightButton == ButtonState.Released && e.PriorState.RightButton == ButtonState.Pressed &&
                 IsAnyKeyDown(Game1.oldKBState, new Keys[] {Keys.LeftAlt, Keys.LeftShift }))
             {
-                Monitor.Log("hotkey macro pressed");
+                bool isAlreadyHoldingItem = (this.HeldItem != null);
 
                 var menu = Game1.activeClickableMenu as GameMenu;
                 Debug.Assert(menu.currentTab == GameMenu.inventoryTab);
@@ -92,12 +92,18 @@ namespace StackSplitX
                 this.HoveredItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "hoveredItem");
                 this.HeldItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "heldItem");
 
-                if (this.HeldItem == null)
+                // If we were holding it and we're now clicking a slot of a different item type then hide the tooltip
+                if (isAlreadyHoldingItem && this.HoveredItem?.Name != this.HeldItem?.Name)
                 {
+                    CleanupAfterSelectingAmount();
                     return;
                 }
 
-                Monitor.Log($"Hovered item: {this.HoveredItem} | held item: {this.HeldItem}");
+                // Ignore for empty slots or stacks of 1
+                if (this.HeldItem == null || this.HeldItem.Stack <= 1)
+                {
+                    return;
+                }
 
                 this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.HeldItem.Stack, this.HoveredItem != null ? this.HoveredItem.Stack : 0);
                 this.ShouldDraw = true;
@@ -105,7 +111,14 @@ namespace StackSplitX
             else if (e.NewState.LeftButton == ButtonState.Pressed && e.PriorState.LeftButton == ButtonState.Released &&
                      this.SplitMenu != null)
             {
-                this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
+                if (this.SplitMenu.ContainsPoint(Game1.getMouseX(), Game1.getMouseY()))
+                {
+                    this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
+                }
+                else
+                {
+                    CleanupAfterSelectingAmount();
+                }
             }
         }
 
@@ -154,7 +167,7 @@ namespace StackSplitX
                 numHeld = 0;
 
                 // Remove the held item
-                Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "this.HeldItem").SetValue(null);
+                Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "heldItem").SetValue(null);
             }
             else if (amount >= totalItems)
             {
