@@ -21,13 +21,13 @@ namespace StackSplitX
             - shop
         */
 
-        private bool isOpen = false;
-        private bool shouldDraw = false;
-        private StackSplitMenu stackSplitMenu = null;
-        private InventoryPage inventoryPage = null;
-        private InventoryMenu inventoryMenu = null;
-        private Item heldItem = null;
-        private Item hoveredItem = null;
+        private bool IsOpen = false;
+        private bool ShouldDraw = false;
+        private StackSplitMenu SplitMenu = null;
+        private InventoryPage InventoryPage = null;
+        private InventoryMenu InventoryMenu = null;
+        private Item HeldItem = null;
+        private Item HoveredItem = null;
 
         public override void Entry(IModHelper helper)
         {
@@ -37,10 +37,10 @@ namespace StackSplitX
 
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed e)
         {
-            if (isOpen)
+            if (this.IsOpen)
             {
-                isOpen = false;
-                shouldDraw = false;
+                this.IsOpen = false;
+                this.ShouldDraw = false;
 
                 ControlEvents.MouseChanged -= OnMouseStateChanged;
                 GraphicsEvents.OnPostRenderEvent -= OnDraw;
@@ -68,7 +68,7 @@ namespace StackSplitX
             {
                 Monitor.Log("Inventory open");
 
-                isOpen = true;
+                this.IsOpen = true;
 
                 var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(menu, "pages");
 
@@ -87,29 +87,42 @@ namespace StackSplitX
                 var menu = Game1.activeClickableMenu as GameMenu;
                 Debug.Assert(menu.currentTab == GameMenu.inventoryTab);
                 var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(menu, "pages");
-                inventoryPage = pages[GameMenu.inventoryTab] as InventoryPage;
-                inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(inventoryPage, "inventory");
-                hoveredItem = Helper.Reflection.GetPrivateValue<Item>(inventoryPage, "hoveredItem");
-                heldItem = Helper.Reflection.GetPrivateValue<Item>(inventoryPage, "heldItem");
+                this.InventoryPage = pages[GameMenu.inventoryTab] as InventoryPage;
+                this.InventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.InventoryPage, "inventory");
+                this.HoveredItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "hoveredItem");
+                this.HeldItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "heldItem");
 
-                if (heldItem == null)
+                if (this.HeldItem == null)
                 {
                     return;
                 }
 
-                Monitor.Log($"Hovered item: {hoveredItem} | held item: {heldItem}");
+                Monitor.Log($"Hovered item: {this.HoveredItem} | held item: {this.HeldItem}");
 
-                stackSplitMenu = new StackSplitMenu(OnStackAmountReceived, heldItem.Stack, hoveredItem != null ? hoveredItem.Stack : 0);
-                shouldDraw = true;
+                this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.HeldItem.Stack, this.HoveredItem != null ? this.HoveredItem.Stack : 0);
+                this.ShouldDraw = true;
+            }
+            else if (e.NewState.LeftButton == ButtonState.Pressed && e.PriorState.LeftButton == ButtonState.Released &&
+                     this.SplitMenu != null)
+            {
+                this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
+            }
+        }
+
+        private void OnUpdate(object sender, EventArgs e)
+        {
+            if (this.SplitMenu != null)
+            {
+                this.SplitMenu.Update();
             }
         }
 
         private void OnDraw(object sender, EventArgs e)
         {
-            if (!shouldDraw || stackSplitMenu == null)
+            if (!this.ShouldDraw || this.SplitMenu == null)
                 return;
 
-            stackSplitMenu.draw(Game1.spriteBatch);
+            this.SplitMenu.draw(Game1.spriteBatch);
         }
 
         private void OnStackAmountReceived(string s)
@@ -130,18 +143,18 @@ namespace StackSplitX
                 return;
             }
 
-            var numHovered = hoveredItem != null ? hoveredItem.Stack : 0;
-            var numHeld = heldItem.Stack;
+            var numHovered = this.HoveredItem != null ? this.HoveredItem.Stack : 0;
+            var numHeld = this.HeldItem.Stack;
             var totalItems = numHovered + numHeld;
 
-            if (amount == 0 && hoveredItem != null)
+            if (amount == 0 && this.HoveredItem != null)
             {
                 // Put the held amount back
                 numHovered += numHeld;
                 numHeld = 0;
 
                 // Remove the held item
-                Helper.Reflection.GetPrivateField<Item>(inventoryPage, "heldItem").SetValue(null);
+                Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "this.HeldItem").SetValue(null);
             }
             else if (amount >= totalItems)
             {
@@ -149,13 +162,13 @@ namespace StackSplitX
                 numHeld = totalItems;
                 numHovered = 0;
 
-                if (hoveredItem != null)
+                if (this.HoveredItem != null)
                 {
                     // Remove the item from the inventory as it's now all being held.
-                    var index = inventoryMenu.actualInventory.IndexOf(hoveredItem);
-                    if (index >= 0 && index < inventoryMenu.actualInventory.Count)
+                    var index = this.InventoryMenu.actualInventory.IndexOf(this.HoveredItem);
+                    if (index >= 0 && index < this.InventoryMenu.actualInventory.Count)
                     {
-                        inventoryMenu.actualInventory[index] = null;
+                        this.InventoryMenu.actualInventory[index] = null;
                     }
                 }
             }
@@ -166,10 +179,10 @@ namespace StackSplitX
                 numHeld = amount;
             }
 
-            heldItem.Stack = numHeld;
-            if (hoveredItem != null)
+            this.HeldItem.Stack = numHeld;
+            if (this.HoveredItem != null)
             {
-                hoveredItem.Stack = numHovered;
+                this.HoveredItem.Stack = numHovered;
             }
 
             CleanupAfterSelectingAmount();
@@ -177,12 +190,12 @@ namespace StackSplitX
 
         private void CleanupAfterSelectingAmount()
         {
-            shouldDraw = false;
-            stackSplitMenu = null;
-            hoveredItem = null;
-            heldItem = null;
-            inventoryPage = null;
-            inventoryMenu = null;
+            this.ShouldDraw = false;
+            this.SplitMenu = null;
+            this.HoveredItem = null;
+            this.HeldItem = null;
+            this.InventoryPage = null;
+            this.InventoryMenu = null;
         }
 
         private bool IsAnyKeyDown(KeyboardState state, Keys[] keys)
