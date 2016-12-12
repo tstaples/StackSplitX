@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using Microsoft.Xna.Framework.Input;
 
 namespace StackSplitX
 {
@@ -87,6 +88,29 @@ namespace StackSplitX
         public static int Clamp(int val, int min, int max)
         {
             return Math.Max(Math.Min(val, max), min);
+        }
+
+        public static bool IsAnyKeyDown(KeyboardState state, Keys[] keys)
+        {
+            foreach (var key in keys)
+            {
+                if (state.IsKeyDown(key))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool WasPressedThisFrame(KeyboardState prior, KeyboardState current, Keys key)
+        {
+            return (prior.IsKeyUp(key) && current.IsKeyDown(key));
+        }
+
+        public static bool WasPressedThisFrame(ButtonState prior, ButtonState current)
+        {
+            //return (current == ButtonState.Released && prior == ButtonState.Pressed);
+            return (current == ButtonState.Pressed && prior == ButtonState.Released);
         }
     }
 }

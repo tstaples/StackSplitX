@@ -45,6 +45,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InputTextBox.cs" />
+    <Compile Include="MenuHandlers\BaseMenuHandler.cs" />
+    <Compile Include="MenuHandlers\GameMenuHandler.cs" />
+    <Compile Include="MenuHandlers\IMenuHandler.cs" />
     <Compile Include="StackSplitMenu.cs" />
     <Compile Include="StackSplitX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

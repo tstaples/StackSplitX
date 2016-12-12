@@ -9,46 +9,60 @@ using StardewModdingAPI.Reflection;
 using StardewModdingAPI.Events;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
+using StackSplitX.MenuHandlers;
 
 namespace StackSplitX
 {
     public class StackSplitX : Mod
     {
-        private bool IsOpen = false;
-        private bool ShouldDraw = false;
-        private StackSplitMenu SplitMenu = null;
-        private InventoryPage InventoryPage = null;
-        private InventoryMenu InventoryMenu = null;
-        private Item HeldItem = null;
-        private Item HoveredItem = null;
-        private int LastMenuTab = 0;
+        private bool IsSubscribed = false;
+        private Dictionary<Type, IMenuHandler> MenuHandlers;
+        private IMenuHandler CurrentMenuHandler;
 
         public override void Entry(IModHelper helper)
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
+
+            this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
+            {
+                { typeof(GameMenu), new GameMenuHandler(helper, this.Monitor) }
+                //{ typeof(ShopMenu), new ShopMenuHandler(helper) },
+                //{ typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper) },
+                //{ typeof(JunimoNoteMenu), new JunimoNoteMenuHandler(helper) }
+            };
         }
 
         private void SubscribeEvents()
         {
-            ControlEvents.MouseChanged += OnMouseStateChanged;
-            ControlEvents.KeyPressed += OnKeyPressed;
-            GraphicsEvents.OnPostRenderEvent += OnDraw;
+            if (!this.IsSubscribed)
+            {
+                ControlEvents.MouseChanged += OnMouseStateChanged;
+                ControlEvents.KeyPressed += OnKeyPressed;
+                GraphicsEvents.OnPostRenderEvent += OnDraw;
+
+                this.IsSubscribed = true;
+            }
         }
 
         private void UnsubscribeEvents()
         {
-            ControlEvents.MouseChanged -= OnMouseStateChanged;
-            ControlEvents.KeyPressed -= OnKeyPressed;
-            GraphicsEvents.OnPostRenderEvent -= OnDraw;
+            if (this.IsSubscribed)
+            {
+                ControlEvents.MouseChanged -= OnMouseStateChanged;
+                ControlEvents.KeyPressed -= OnKeyPressed;
+                GraphicsEvents.OnPostRenderEvent -= OnDraw;
+
+                this.IsSubscribed = false;
+            }
         }
 
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed e)
         {
-            if (this.IsOpen)
+            if (this.CurrentMenuHandler != null)
             {
-                this.IsOpen = false;
-                this.ShouldDraw = false;
+                this.CurrentMenuHandler.Close();
+                this.CurrentMenuHandler = null;
 
                 UnsubscribeEvents();
             }
@@ -64,18 +78,16 @@ namespace StackSplitX
                 return;
             }
 
-            if (!(e.NewMenu is GameMenu))
+            if (this.MenuHandlers.ContainsKey(e.NewMenu.GetType()))
             {
-                return;
-            }
+                // Close the current one of it's valid
+                if (this.CurrentMenuHandler != null)
+                {
+                    this.CurrentMenuHandler.Close();
+                }
 
-            var menu = e.NewMenu as GameMenu;
-            if (menu.currentTab == GameMenu.inventoryTab)
-            {
-                Monitor.Log("Inventory open");
-
-                this.IsOpen = true;
-                this.LastMenuTab = GameMenu.inventoryTab;
+                this.CurrentMenuHandler = this.MenuHandlers[e.NewMenu.GetType()];
+                this.CurrentMenuHandler.Open(e.NewMenu);
 
                 SubscribeEvents();
             }
@@ -84,58 +96,21 @@ namespace StackSplitX
         
         private void OnMouseStateChanged(object sender, EventArgsMouseStateChanged e)
         {
-            // TODO: handle tab changes
-            //if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is GameMenu)
-            //{
-            //    var gameMenu = Game1.activeClickableMenu as GameMenu;
-            //    if (gameMenu.currentTab != this.LastMenuTab)
-            //    {
-
-            //    }
-            //}
-
-            if (e.NewState.RightButton == ButtonState.Released && e.PriorState.RightButton == ButtonState.Pressed &&
-                IsAnyKeyDown(Game1.oldKBState, new Keys[] {Keys.LeftAlt, Keys.LeftShift }))
+            if (this.CurrentMenuHandler != null && this.CurrentMenuHandler.IsOpen())
             {
-                bool isAlreadyHoldingItem = (this.HeldItem != null);
-
-                var menu = Game1.activeClickableMenu as GameMenu;
-                Debug.Assert(menu.currentTab == GameMenu.inventoryTab);
-                var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(menu, "pages");
-                this.InventoryPage = pages[GameMenu.inventoryTab] as InventoryPage;
-                this.InventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.InventoryPage, "inventory");
-                this.HoveredItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "hoveredItem");
-                this.HeldItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "heldItem");
-
-                // If we were holding it and we're now clicking a slot of a different item type then hide the tooltip
-                if (isAlreadyHoldingItem && this.HoveredItem?.Name != this.HeldItem?.Name)
+                switch (this.CurrentMenuHandler.HandleMouseInput(e.PriorState, e.NewState))
                 {
-                    CleanupAfterSelectingAmount();
-                    return;
-                }
-
-                // Ignore for empty slots or stacks of 1
-                if (this.HeldItem == null || this.HeldItem.Stack <= 1)
-                {
-                    return;
-                }
-
-
-                this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.HeldItem.Stack, this.HoveredItem != null ? this.HoveredItem.Stack : 0);
-                this.ShouldDraw = true;
-            }
-            else if (e.NewState.LeftButton == ButtonState.Pressed && e.PriorState.LeftButton == ButtonState.Released &&
-                     this.SplitMenu != null)
-            {
-                // If the player clicks within the bounds of the tooltip then forward the input to that. 
-                // Otherwise they're clicking elsewhere and we should close the tooltip.
-                if (this.SplitMenu.ContainsPoint(Game1.getMouseX(), Game1.getMouseY()))
-                {
-                    this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
-                }
-                else
-                {
-                    CleanupAfterSelectingAmount();
+                    case EInputHandled.Handled:
+                        break;
+                    case EInputHandled.Consumed:
+                        // Consume mouse input.
+                        this.Monitor.Log($"Input consumed by handler: {this.CurrentMenuHandler}", LogLevel.Trace);
+                        Game1.oldMouseState = e.NewState;
+                        break;
+                    case EInputHandled.NotHandled:
+                        // The click wasn't handled meaning the split menu no longer has focus and should be closed.
+                        this.CurrentMenuHandler.CloseSplitMenu();
+                        break;
                 }
             }
         }
@@ -144,7 +119,9 @@ namespace StackSplitX
         {
             // Intercept keyboard input while the tooltip is active so numbers don't change the actively equipped item etc.
             // TODO: handle esc to close.
-            if (this.ShouldDraw)
+            // TODO: remove null checks if these events are only called subscribed when it's valid
+            if (this.CurrentMenuHandler != null && 
+                this.CurrentMenuHandler.HandleKeyboardInput(e.KeyPressed) == EInputHandled.Handled)
             {
                 Game1.oldKBState = Keyboard.GetState();
             }
@@ -152,103 +129,18 @@ namespace StackSplitX
 
         private void OnUpdate(object sender, EventArgs e)
         {
-            if (this.SplitMenu != null)
+            if (this.CurrentMenuHandler != null)
             {
-                this.SplitMenu.Update();
+                this.CurrentMenuHandler.Update();
             }
         }
 
         private void OnDraw(object sender, EventArgs e)
         {
-            if (!this.ShouldDraw || this.SplitMenu == null)
-                return;
-
-            this.SplitMenu.draw(Game1.spriteBatch);
-        }
-
-        private void OnStackAmountReceived(string s)
-        {
-            Monitor.Log(s);
-
-            int amount = -1;
-            if (!int.TryParse(s, out amount))
+            if (this.CurrentMenuHandler != null)
             {
-                Monitor.Log("Invalid amount input");
-                CleanupAfterSelectingAmount();
-                return;
+                this.CurrentMenuHandler.Draw(Game1.spriteBatch);
             }
-
-            if (amount < 0)
-            {
-                CleanupAfterSelectingAmount();
-                return;
-            }
-
-            var numHovered = this.HoveredItem != null ? this.HoveredItem.Stack : 0;
-            var numHeld = this.HeldItem.Stack;
-            var totalItems = numHovered + numHeld;
-
-            if (amount == 0 && this.HoveredItem != null)
-            {
-                // Put the held amount back
-                numHovered += numHeld;
-                numHeld = 0;
-
-                // Remove the held item
-                Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "heldItem").SetValue(null);
-            }
-            else if (amount >= totalItems)
-            {
-                // Put all items into held
-                numHeld = totalItems;
-                numHovered = 0;
-
-                if (this.HoveredItem != null)
-                {
-                    // Remove the item from the inventory as it's now all being held.
-                    var index = this.InventoryMenu.actualInventory.IndexOf(this.HoveredItem);
-                    if (index >= 0 && index < this.InventoryMenu.actualInventory.Count)
-                    {
-                        this.InventoryMenu.actualInventory[index] = null;
-                    }
-                }
-            }
-            else
-            {
-                // Use the input value
-                numHovered = totalItems - amount;
-                numHeld = amount;
-            }
-
-            this.HeldItem.Stack = numHeld;
-            if (this.HoveredItem != null)
-            {
-                this.HoveredItem.Stack = numHovered;
-            }
-
-            CleanupAfterSelectingAmount();
-        }
-
-        private void CleanupAfterSelectingAmount()
-        {
-            this.ShouldDraw = false;
-            this.SplitMenu = null;
-            this.HoveredItem = null;
-            this.HeldItem = null;
-            this.InventoryPage = null;
-            this.InventoryMenu = null;
-        }
-
-        private bool IsAnyKeyDown(KeyboardState state, Keys[] keys)
-        {
-            foreach (var key in keys)
-            {
-                if (state.IsKeyDown(key))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         #region DebugMenuPrint
