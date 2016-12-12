@@ -48,6 +48,7 @@
     <Compile Include="MenuHandlers\BaseMenuHandler.cs" />
     <Compile Include="MenuHandlers\GameMenuHandler.cs" />
     <Compile Include="MenuHandlers\IMenuHandler.cs" />
+    <Compile Include="MenuHandlers\ItemGrabMenuHandler.cs" />
     <Compile Include="StackSplitMenu.cs" />
     <Compile Include="StackSplitX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
