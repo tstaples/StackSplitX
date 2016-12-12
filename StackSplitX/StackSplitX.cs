@@ -118,12 +118,19 @@ namespace StackSplitX
         private void OnKeyPressed(object sender, EventArgsKeyPressed e)
         {
             // Intercept keyboard input while the tooltip is active so numbers don't change the actively equipped item etc.
-            // TODO: handle esc to close.
             // TODO: remove null checks if these events are only called subscribed when it's valid
             if (this.CurrentMenuHandler != null && 
                 this.CurrentMenuHandler.HandleKeyboardInput(e.KeyPressed) == EInputHandled.Handled)
             {
-                Game1.oldKBState = Keyboard.GetState();
+                // Obey unless we're hitting 'cancel' keys.
+                if (e.KeyPressed != Keys.Escape)
+                {
+                    Game1.oldKBState = Keyboard.GetState();
+                }
+                else
+                {
+                    this.CurrentMenuHandler.CloseSplitMenu();
+                }
             }
         }
 
