@@ -14,13 +14,6 @@ namespace StackSplitX
 {
     public class StackSplitX : Mod
     {
-        /* 
-            Menus:
-            - inventory
-            - chest
-            - shop
-        */
-
         private bool IsOpen = false;
         private bool ShouldDraw = false;
         private StackSplitMenu SplitMenu = null;
@@ -28,11 +21,26 @@ namespace StackSplitX
         private InventoryMenu InventoryMenu = null;
         private Item HeldItem = null;
         private Item HoveredItem = null;
+        private int LastMenuTab = 0;
 
         public override void Entry(IModHelper helper)
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
+        }
+
+        private void SubscribeEvents()
+        {
+            ControlEvents.MouseChanged += OnMouseStateChanged;
+            ControlEvents.KeyPressed += OnKeyPressed;
+            GraphicsEvents.OnPostRenderEvent += OnDraw;
+        }
+
+        private void UnsubscribeEvents()
+        {
+            ControlEvents.MouseChanged -= OnMouseStateChanged;
+            ControlEvents.KeyPressed -= OnKeyPressed;
+            GraphicsEvents.OnPostRenderEvent -= OnDraw;
         }
 
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed e)
@@ -42,8 +50,7 @@ namespace StackSplitX
                 this.IsOpen = false;
                 this.ShouldDraw = false;
 
-                ControlEvents.MouseChanged -= OnMouseStateChanged;
-                GraphicsEvents.OnPostRenderEvent -= OnDraw;
+                UnsubscribeEvents();
             }
         }
 
@@ -51,10 +58,9 @@ namespace StackSplitX
         {
             DebugPrintMenuInfo(e.PriorMenu, e.NewMenu);
 
-            // TODO: remove if this nolonger occurs here
+            // Resize event; ignore
             if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType())
             {
-                Monitor.Log("resize event");
                 return;
             }
 
@@ -69,16 +75,25 @@ namespace StackSplitX
                 Monitor.Log("Inventory open");
 
                 this.IsOpen = true;
+                this.LastMenuTab = GameMenu.inventoryTab;
 
-                var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(menu, "pages");
-
-                ControlEvents.MouseChanged += OnMouseStateChanged;
-                GraphicsEvents.OnPostRenderEvent += OnDraw;
+                SubscribeEvents();
             }
         }
-
+        
+        
         private void OnMouseStateChanged(object sender, EventArgsMouseStateChanged e)
         {
+            // TODO: handle tab changes
+            //if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is GameMenu)
+            //{
+            //    var gameMenu = Game1.activeClickableMenu as GameMenu;
+            //    if (gameMenu.currentTab != this.LastMenuTab)
+            //    {
+
+            //    }
+            //}
+
             if (e.NewState.RightButton == ButtonState.Released && e.PriorState.RightButton == ButtonState.Pressed &&
                 IsAnyKeyDown(Game1.oldKBState, new Keys[] {Keys.LeftAlt, Keys.LeftShift }))
             {
@@ -105,12 +120,15 @@ namespace StackSplitX
                     return;
                 }
 
+
                 this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.HeldItem.Stack, this.HoveredItem != null ? this.HoveredItem.Stack : 0);
                 this.ShouldDraw = true;
             }
             else if (e.NewState.LeftButton == ButtonState.Pressed && e.PriorState.LeftButton == ButtonState.Released &&
                      this.SplitMenu != null)
             {
+                // If the player clicks within the bounds of the tooltip then forward the input to that. 
+                // Otherwise they're clicking elsewhere and we should close the tooltip.
                 if (this.SplitMenu.ContainsPoint(Game1.getMouseX(), Game1.getMouseY()))
                 {
                     this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
@@ -119,6 +137,16 @@ namespace StackSplitX
                 {
                     CleanupAfterSelectingAmount();
                 }
+            }
+        }
+
+        private void OnKeyPressed(object sender, EventArgsKeyPressed e)
+        {
+            // Intercept keyboard input while the tooltip is active so numbers don't change the actively equipped item etc.
+            // TODO: handle esc to close.
+            if (this.ShouldDraw)
+            {
+                Game1.oldKBState = Keyboard.GetState();
             }
         }
 
