@@ -18,11 +18,13 @@ namespace StackSplitX
         private bool IsSubscribed = false;
         private Dictionary<Type, IMenuHandler> MenuHandlers;
         private IMenuHandler CurrentMenuHandler;
+        private bool WasResizeEvent = false;
 
         public override void Entry(IModHelper helper)
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
+            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; };
 
             this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
             {
@@ -73,8 +75,10 @@ namespace StackSplitX
             DebugPrintMenuInfo(e.PriorMenu, e.NewMenu);
 
             // Resize event; ignore
-            if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType())
+            if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType() && this.WasResizeEvent)
             {
+                this.Monitor.Log("was resize", LogLevel.Trace);
+                this.WasResizeEvent = false;
                 return;
             }
 

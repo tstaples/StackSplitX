@@ -16,7 +16,7 @@ namespace StackSplitX.MenuHandlers
     {
         private bool IsMenuOpen = false;
         protected StackSplitMenu SplitMenu = null;
-        protected IClickableMenu NativeMenu { get; private set; }
+        protected IClickableMenu NativeMenu { get; set; }
         protected IModHelper Helper { get; private set; }
         protected IMonitor Monitor { get; private set; }
 
@@ -47,13 +47,10 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void Update()
         {
-            if (this.SplitMenu != null)
-            {
-                this.SplitMenu.Update();
-            }
+            this.SplitMenu?.Update();
         }
 
-        public void CloseSplitMenu()
+        public virtual void CloseSplitMenu()
         {
             this.SplitMenu = null;
         }
@@ -74,6 +71,12 @@ namespace StackSplitX.MenuHandlers
                 // Invoke split menu if the modifier key was also down
                 if (IsModifierKeyDown() && CanOpenSplitMenu())
                 {
+                    // TODO: handle a move already in progress
+                    //if (this.SplitMenu != null)
+                    //{
+                    //    CloseSplitMenu();
+                    //}
+
                     // TODO: have this return consumed for shops and stuff where we need to act before the click happens
                     return OpenSplitMenu();
                 }
@@ -87,6 +90,11 @@ namespace StackSplitX.MenuHandlers
                 {
                     this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
                     return EInputHandled.Consumed;
+                }
+                else
+                {
+                    // Lost focus; cancel the move (run default behavior)
+                    return CancelMove();
                 }
             }
             else if (this.SplitMenu != null)
@@ -117,6 +125,13 @@ namespace StackSplitX.MenuHandlers
         }
 
         protected abstract EInputHandled OpenSplitMenu();
+
+        // Called when lost focus
+        protected virtual EInputHandled CancelMove()
+        {
+            this.Monitor.Log("Canceled move", LogLevel.Trace);
+            return EInputHandled.NotHandled;
+        }
 
         protected virtual void OnStackAmountReceived(string s)
         {

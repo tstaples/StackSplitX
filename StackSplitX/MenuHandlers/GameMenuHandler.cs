@@ -24,31 +24,6 @@ namespace StackSplitX.MenuHandlers
         {
         }
 
-        public override bool IsOpen()
-        {
-            return base.IsOpen();
-        }
-
-        public override void Open(IClickableMenu menu)
-        {
-            base.Open(menu);
-        }
-
-        public override void Close()
-        {
-            base.Close();
-        }
-
-        public override void Update()
-        {
-            base.Update();
-        }
-
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-            base.Draw(spriteBatch);
-        }
-
         protected override bool CanOpenSplitMenu()
         {
             // Check the current tab is valid
@@ -170,9 +145,7 @@ namespace StackSplitX.MenuHandlers
 
             this.HeldItem.Stack = numHeld;
             if (this.HoveredItem != null)
-            {
                 this.HoveredItem.Stack = numHovered;
-            }
 
             base.OnStackAmountReceived(s);
         }
