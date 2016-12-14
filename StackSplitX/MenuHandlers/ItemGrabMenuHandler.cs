@@ -20,7 +20,6 @@ namespace StackSplitX.MenuHandlers
         private ItemGrabMenu.behaviorOnItemSelect OriginalItemSelectCallback;
         private ItemGrabMenu.behaviorOnItemSelect OriginalItemGrabCallback;
         private Item HoverItem = null;
-        private Item HeldItem = null;
         private int StackAmount = 0;
         private int TotalItems = 0;
         private Point ClickItemLocation;
@@ -46,8 +45,6 @@ namespace StackSplitX.MenuHandlers
 
         protected override EInputHandled CancelMove()
         {
-            base.CancelMove();
-
             if (this.HoverItem != null)
             {
                 // If being cancelled from a click else-where then the keyboad state won't have shift held (unless they're still holding it),
@@ -80,7 +77,6 @@ namespace StackSplitX.MenuHandlers
 
                 // Emulate the right click method that would normally happen.
                 this.HoverItem = nativeMenuWithInventory.hoveredItem;
-                this.HeldItem = nativeMenuWithInventory.heldItem;
             }
             catch (Exception e)
             {
@@ -89,9 +85,9 @@ namespace StackSplitX.MenuHandlers
             }
 
             // Do nothing if we're not hovering over an item
-            if (this.HoverItem == null)
+            if (this.HoverItem == null || this.HoverItem.Stack <= 1)
             {
-                this.Monitor.Log("No hover item", LogLevel.Trace);
+                //this.Monitor.Log("No hover item", LogLevel.Trace);
                 return EInputHandled.NotHandled;
             }
 
@@ -154,16 +150,16 @@ namespace StackSplitX.MenuHandlers
             Debug.Assert(this.StackAmount > 0);
 
             // Get the held item now that it's been set by the native receiveRightClick call
-            this.HeldItem = GetHeldItem();
-            if (this.HeldItem != null)
+            var heldItem = GetHeldItem();
+            if (heldItem != null)
             {
                 // update held item stack and item stack
-                int numCurrentlyHeld = this.HeldItem.Stack; // How many we're actually holding.
+                int numCurrentlyHeld = heldItem.Stack; // How many we're actually holding.
                 int numInPile = this.HoverItem.Stack + item.Stack;
                 int wantToHold = Math.Min(this.TotalItems, Math.Max(this.StackAmount, 0));
 
                 this.HoverItem.Stack = this.TotalItems - wantToHold;
-                this.HeldItem.Stack = wantToHold;
+                heldItem.Stack = wantToHold;
 
                 item.Stack = wantToHold;
 

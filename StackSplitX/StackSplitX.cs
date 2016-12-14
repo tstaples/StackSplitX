@@ -24,7 +24,8 @@ namespace StackSplitX
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
-            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; this.Monitor.Log("Resize", LogLevel.Trace); };
+            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; };
+            GameEvents.UpdateTick += OnUpdate;
 
             this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
             {
@@ -63,7 +64,7 @@ namespace StackSplitX
         {
             if (this.CurrentMenuHandler != null)
             {
-                this.Monitor.Log("[OnMenuClosed] Closing current menu handler");
+                this.Monitor.Log("[OnMenuClosed] Closing current menu handler", LogLevel.Trace);
                 this.CurrentMenuHandler.Close();
                 this.CurrentMenuHandler = null;
 
@@ -82,7 +83,7 @@ namespace StackSplitX
                 this.WasResizeEvent = false;
                 return;
             }
-            this.WasResizeEvent = false;
+            this.WasResizeEvent = false; // Reset
 
             var newMenuType = e.NewMenu.GetType();
             if (this.MenuHandlers.ContainsKey(newMenuType))
@@ -144,18 +145,12 @@ namespace StackSplitX
 
         private void OnUpdate(object sender, EventArgs e)
         {
-            if (this.CurrentMenuHandler != null)
-            {
-                this.CurrentMenuHandler.Update();
-            }
+            this.CurrentMenuHandler?.Update();
         }
 
         private void OnDraw(object sender, EventArgs e)
         {
-            if (this.CurrentMenuHandler != null)
-            {
-                this.CurrentMenuHandler.Draw(Game1.spriteBatch);
-            }
+            this.CurrentMenuHandler?.Draw(Game1.spriteBatch);
         }
 
         #region DebugMenuPrint

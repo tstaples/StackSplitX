@@ -14,6 +14,9 @@ namespace StackSplitX.MenuHandlers
 {
     public abstract class BaseMenuHandler : IMenuHandler
     {
+        // How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)
+        public const float RightClickPollingInterval = 650f;
+
         private bool IsMenuOpen = false;
         protected StackSplitMenu SplitMenu = null;
         protected IClickableMenu NativeMenu { get; set; }
@@ -45,15 +48,20 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void Update()
         {
-            this.SplitMenu?.Update();
+            if (Game1.mouseClickPolling < RightClickPollingInterval)
+            {
+                this.SplitMenu?.Update();
+            }
+            else if (this.SplitMenu != null)
+            {
+                // Close the menu if the interval is reached as the player likely wants it's regular behavior
+                CancelMove();
+            }
         }
 
         public virtual void CloseSplitMenu()
         {
-            if (this.SplitMenu != null)
-            {
-                this.SplitMenu = null;
-            }
+            this.SplitMenu = null;
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
@@ -130,7 +138,7 @@ namespace StackSplitX.MenuHandlers
         // Called when lost focus
         protected virtual EInputHandled CancelMove()
         {
-            this.Monitor.Log("Canceled move", LogLevel.Trace);
+            CloseSplitMenu();
             return EInputHandled.NotHandled;
         }
 

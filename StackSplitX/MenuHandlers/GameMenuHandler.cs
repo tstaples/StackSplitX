@@ -48,7 +48,7 @@ namespace StackSplitX.MenuHandlers
                 // Emulate the right click method that would normally happen (native code passes in held item hence above).
                 this.HeldItem = this.InventoryMenu.rightClick(Game1.getMouseX(), Game1.getMouseY(), this.HeldItem);
                 // Update the native object's held item.
-                this.Monitor.Log($"Held item: {this.HeldItem.Name}", LogLevel.Trace);
+                this.Monitor.Log($"Held item: {this.HeldItem?.Name}", LogLevel.Trace);
                 heldItemField.SetValue(this.HeldItem);
             }
             catch (Exception e)
