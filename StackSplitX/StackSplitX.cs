@@ -24,7 +24,7 @@ namespace StackSplitX
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
-            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; };
+            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; this.Monitor.Log("Resize", LogLevel.Trace); };
 
             this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
             {
@@ -63,6 +63,7 @@ namespace StackSplitX
         {
             if (this.CurrentMenuHandler != null)
             {
+                this.Monitor.Log("[OnMenuClosed] Closing current menu handler");
                 this.CurrentMenuHandler.Close();
                 this.CurrentMenuHandler = null;
 
@@ -72,7 +73,7 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            DebugPrintMenuInfo(e.PriorMenu, e.NewMenu);
+            //DebugPrintMenuInfo(e.PriorMenu, e.NewMenu);
 
             // Resize event; ignore
             if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType() && this.WasResizeEvent)
@@ -81,16 +82,18 @@ namespace StackSplitX
                 this.WasResizeEvent = false;
                 return;
             }
+            this.WasResizeEvent = false;
 
-            if (this.MenuHandlers.ContainsKey(e.NewMenu.GetType()))
+            var newMenuType = e.NewMenu.GetType();
+            if (this.MenuHandlers.ContainsKey(newMenuType))
             {
-                // Close the current one of it's valid
-                if (this.CurrentMenuHandler != null)
+                // Close the current one of it's valid and not the same as the current one
+                if (this.CurrentMenuHandler != null && this.CurrentMenuHandler != this.MenuHandlers[newMenuType])
                 {
                     this.CurrentMenuHandler.Close();
                 }
 
-                this.CurrentMenuHandler = this.MenuHandlers[e.NewMenu.GetType()];
+                this.CurrentMenuHandler = this.MenuHandlers[newMenuType];
                 this.CurrentMenuHandler.Open(e.NewMenu);
 
                 SubscribeEvents();

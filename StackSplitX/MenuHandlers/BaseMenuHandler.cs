@@ -33,8 +33,6 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void Open(IClickableMenu menu)
         {
-            Debug.Assert(!this.IsMenuOpen, "MenuHandler is already open");
-
             this.NativeMenu = menu;
             this.IsMenuOpen = true;
         }
@@ -52,7 +50,10 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void CloseSplitMenu()
         {
-            this.SplitMenu = null;
+            if (this.SplitMenu != null)
+            {
+                this.SplitMenu = null;
+            }
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
@@ -71,11 +72,11 @@ namespace StackSplitX.MenuHandlers
                 // Invoke split menu if the modifier key was also down
                 if (IsModifierKeyDown() && CanOpenSplitMenu())
                 {
-                    // TODO: handle a move already in progress
-                    //if (this.SplitMenu != null)
-                    //{
-                    //    CloseSplitMenu();
-                    //}
+                    // Cancel the current operation
+                    if (this.SplitMenu != null)
+                    {
+                        CancelMove();
+                    }
 
                     // TODO: have this return consumed for shops and stuff where we need to act before the click happens
                     return OpenSplitMenu();

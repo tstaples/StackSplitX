@@ -8,6 +8,7 @@ using StardewValley.Menus;
 using StardewValley;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace StackSplitX.MenuHandlers
 {
@@ -29,11 +30,6 @@ namespace StackSplitX.MenuHandlers
         {
         }
 
-        public override void Open(IClickableMenu menu)
-        {
-            base.Open(menu);
-        }
-
         protected override bool CanOpenSplitMenu()
         {
             bool canOpen = (this.NativeMenu as ItemGrabMenu).allowRightClick;
@@ -42,27 +38,34 @@ namespace StackSplitX.MenuHandlers
 
         public override void CloseSplitMenu()
         {
-            if (this.SplitMenu != null)
-            {
-                base.CloseSplitMenu();
-                //RevertItems();
-                //CancelMove();
-                RestoreNativeCallbacks();
-            }
+            base.CloseSplitMenu();
+
+            if (this.CallbacksHooked)
+                this.Monitor.Log("[CloseSplitMenu] Callbacks shouldn't be hooked", LogLevel.Error);
         }
 
         protected override EInputHandled CancelMove()
         {
             base.CancelMove();
 
-            // Run the regular command
-            this.NativeMenu?.receiveRightClick(this.ClickItemLocation.X, this.ClickItemLocation.Y);
+            if (this.HoverItem != null)
+            {
+                // If being cancelled from a click else-where then the keyboad state won't have shift held (unless they're still holding it),
+                // in which case the default right-click behavior will run and only a single item will get moved instead of half the stack.
+                // Therefore we must make sure it's still using our callback so we can correct the amount.
+                HookCallbacks();
 
-            // Close the menu
-            CloseSplitMenu();
+                // Run the regular command
+                this.NativeMenu?.receiveRightClick(this.ClickItemLocation.X, this.ClickItemLocation.Y);
+
+                CloseSplitMenu();
+
+                // Consume input so the menu doesn't run left click logic as well
+                return EInputHandled.Consumed;
+            }
 
             // Consume input so the menu doesn't run left click logic as well
-            return EInputHandled.Consumed;
+            return EInputHandled.NotHandled;
         }
 
         protected override EInputHandled OpenSplitMenu()
@@ -85,15 +88,10 @@ namespace StackSplitX.MenuHandlers
                 return EInputHandled.NotHandled;
             }
 
+            // Do nothing if we're not hovering over an item
             if (this.HoverItem == null)
             {
                 this.Monitor.Log("No hover item", LogLevel.Trace);
-                return EInputHandled.NotHandled;
-            }
-
-            // Try to hook into the item callbacks
-            if (!HookCallbacks())
-            {
                 return EInputHandled.NotHandled;
             }
 
@@ -101,40 +99,16 @@ namespace StackSplitX.MenuHandlers
             // as proceeding parts will use the now moved mouse location.
             this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
 
-            // Check if we're selecting an item in the player intentory
-            this.HeldItem = this.PlayerInventoryMenu.rightClick(ClickItemLocation.X, ClickItemLocation.Y, this.HeldItem);
-            if (this.HeldItem == null)
-            {
-                // Check the item to grab menu
-                //this.HeldItem = this.ItemsToGrabMenu.rightClick(Game1.getMouseX(), Game1.getMouseY(), this.HeldItem);
-                this.HeldItem = this.ItemsToGrabMenu.rightClick(ClickItemLocation.X, ClickItemLocation.Y, this.HeldItem);
-                if (this.HeldItem == null)
-                {
-                    // If there's no item here either then there's nothing else to do
-                    this.Monitor.Log("No held item", LogLevel.Trace);
-                    RestoreNativeCallbacks();
-                    return EInputHandled.NotHandled;
-                }
+            this.TotalItems = this.HoverItem.Stack;
+            this.StackAmount = (int)Math.Ceiling(this.TotalItems / 2.0); // default at half
 
-                this.Monitor.Log("Item is from grab menu", LogLevel.Trace);
-            }
-            else // debug
-            {
-                this.Monitor.Log("Item is from inventory", LogLevel.Trace);
-                //OnItemSelect(this.HeldItem, Game1.player);
-            }
-
-            this.TotalItems = this.HoverItem.Stack + this.HeldItem.Stack;
-            this.StackAmount = this.HeldItem.Stack;
-
-            this.Monitor.Log($"Held item: {this.HeldItem?.Name}", LogLevel.Trace);
+            this.Monitor.Log($"Hovered item: {this.HoverItem.Name} | Total items: {this.TotalItems} | Held amount: {this.StackAmount} | Hovered amount: {this.HoverItem.Stack}", LogLevel.Trace);
 
             // Create the split menu
             this.SplitMenu = new StackSplitMenu(
                 OnStackAmountReceived,
-                this.HeldItem.Stack,
-                this.HoverItem.Stack
-                //this.HoverItem != null ? this.HoverItem.Stack : 0
+                this.StackAmount,
+                this.TotalItems / 2
                 );
 
             return EInputHandled.Consumed;
@@ -147,6 +121,9 @@ namespace StackSplitX.MenuHandlers
             {
                 if (this.StackAmount > 0)
                 {
+                    if (!HookCallbacks())
+                        throw new Exception("Failed to hook callbacks");
+
                     this.NativeMenu.receiveRightClick(this.ClickItemLocation.X, this.ClickItemLocation.Y);
                 }
                 else
@@ -160,14 +137,14 @@ namespace StackSplitX.MenuHandlers
 
         private void OnItemSelect(Item item, Farmer who)
         {
-            this.Monitor.Log("OnItemSelect", LogLevel.Trace);
+            //this.Monitor.Log("OnItemSelect", LogLevel.Trace);
 
             MoveItems(item, who, this.PlayerInventoryMenu, this.OriginalItemSelectCallback);
         }
 
         private void OnItemGrab(Item item, Farmer who)
         {
-            this.Monitor.Log("OnItemGrab", LogLevel.Trace);
+            //this.Monitor.Log("OnItemGrab", LogLevel.Trace);
 
             MoveItems(item, who, this.ItemsToGrabMenu, this.OriginalItemGrabCallback);
         }
@@ -175,14 +152,14 @@ namespace StackSplitX.MenuHandlers
         private void MoveItems(Item item, Farmer who, InventoryMenu inventory, ItemGrabMenu.behaviorOnItemSelect callback)
         {
             Debug.Assert(this.StackAmount > 0);
+
+            // Get the held item now that it's been set by the native receiveRightClick call
+            this.HeldItem = GetHeldItem();
             if (this.HeldItem != null)
             {
-                // shift held while submitting, causing it to do normal shift-click behavior
-                bool shiftHeld = (item.Stack > 1);
-
                 // update held item stack and item stack
                 int numCurrentlyHeld = this.HeldItem.Stack; // How many we're actually holding.
-                int numInPile = this.HoverItem.Stack + item.Stack;//(shiftHeld ? item.Stack : 0);
+                int numInPile = this.HoverItem.Stack + item.Stack;
                 int wantToHold = Math.Min(this.TotalItems, Math.Max(this.StackAmount, 0));
 
                 this.HoverItem.Stack = this.TotalItems - wantToHold;
@@ -219,9 +196,7 @@ namespace StackSplitX.MenuHandlers
         private bool HookCallbacks()
         {
             if (this.CallbacksHooked)
-            {
-                throw new Exception("Callbacks already hooked");
-            }
+                return true;
 
             try
             {
@@ -264,6 +239,12 @@ namespace StackSplitX.MenuHandlers
             {
                 this.Monitor.Log("Failed to restore native callbacks");
             }
+        }
+
+        private Item GetHeldItem()
+        {
+            var nativeMenuWithInventory = (this.NativeMenu as MenuWithInventory);
+            return nativeMenuWithInventory.heldItem;
         }
     }
 }
