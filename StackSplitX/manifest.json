@@ -1,6 +1,6 @@
 {
   "Name": "StackSplitX",
-  "Authour": "Tyler",
+  "Author": "tstaples (aka Catman)",
   "Version": {
     "MajorVersion": 1,
     "MinorVersion": 0,
@@ -9,5 +9,6 @@
   },
   "Description": "Custom Stack splitting.",
   "PerSaveConfigs": false,
+  "MinimumApiVersion": "1.4",
   "EntryDll": "StackSplitX.dll"
 }

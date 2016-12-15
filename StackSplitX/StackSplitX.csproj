@@ -28,10 +28,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\SMAPI\StardewModdingAPI\bin\Release\Mods\StackSplitX\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -49,6 +50,7 @@
     <Compile Include="MenuHandlers\GameMenuHandler.cs" />
     <Compile Include="MenuHandlers\IMenuHandler.cs" />
     <Compile Include="MenuHandlers\ItemGrabMenuHandler.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandler.cs" />
     <Compile Include="StackSplitMenu.cs" />
     <Compile Include="StackSplitX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

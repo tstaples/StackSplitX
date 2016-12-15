@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
 using StardewModdingAPI;
-using StardewModdingAPI.Reflection;
 using StardewModdingAPI.Events;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
@@ -30,7 +29,7 @@ namespace StackSplitX
             this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
             {
                 { typeof(GameMenu), new GameMenuHandler(helper, this.Monitor) },
-                //{ typeof(ShopMenu), new ShopMenuHandler(helper, this.Monitor) },
+                { typeof(ShopMenu), new ShopMenuHandler(helper, this.Monitor) },
                 { typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper, this.Monitor) }
                 //{ typeof(JunimoNoteMenu), new JunimoNoteMenuHandler(helper, this.Monitor) }
             };
@@ -156,7 +155,7 @@ namespace StackSplitX
         #region DebugMenuPrint
         private void DebugPrintMenuInfo(IClickableMenu priorMenu, IClickableMenu newMenu)
         {
-#if DEBUG
+#if DEBUG && TRACE
             try
             {
                 string priorName = "None";

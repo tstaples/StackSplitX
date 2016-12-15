@@ -14,9 +14,6 @@ namespace StackSplitX.MenuHandlers
 {
     public abstract class BaseMenuHandler : IMenuHandler
     {
-        // How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)
-        public const float RightClickPollingInterval = 650f;
-
         private bool IsMenuOpen = false;
         protected StackSplitMenu SplitMenu = null;
         protected IClickableMenu NativeMenu { get; set; }
@@ -48,7 +45,7 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void Update()
         {
-            if (Game1.mouseClickPolling < RightClickPollingInterval)
+            if (Game1.mouseClickPolling < GetRightClickPollingInterval())
             {
                 this.SplitMenu?.Update();
             }
@@ -126,6 +123,12 @@ namespace StackSplitX.MenuHandlers
         protected virtual bool ShouldConsumeKeyboardInput(Keys keyPressed)
         {
             return (this.SplitMenu != null);
+        }
+
+        protected virtual float GetRightClickPollingInterval()
+        {
+            // How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)
+            return 650f;
         }
 
         protected virtual bool CanOpenSplitMenu()
