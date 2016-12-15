@@ -73,8 +73,6 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            //DebugPrintMenuInfo(e.PriorMenu, e.NewMenu);
-
             // Resize event; ignore
             if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType() && this.WasResizeEvent)
             {
@@ -110,9 +108,6 @@ namespace StackSplitX
                     case EInputHandled.Handled:
                         break;
                     case EInputHandled.Consumed:
-                        // TODO: play sounds if needed
-                        // Consume mouse input.
-                        this.Monitor.Log($"Input consumed by handler: {this.CurrentMenuHandler}", LogLevel.Trace);
                         Game1.oldMouseState = e.NewState;
                         break;
                     case EInputHandled.NotHandled:

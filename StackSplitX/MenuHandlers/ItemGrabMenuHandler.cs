@@ -1,14 +1,9 @@
 ﻿using StardewModdingAPI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewValley.Menus;
 using StardewValley;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace StackSplitX.MenuHandlers
 {
@@ -98,14 +93,10 @@ namespace StackSplitX.MenuHandlers
             this.TotalItems = this.HoverItem.Stack;
             this.StackAmount = (int)Math.Ceiling(this.TotalItems / 2.0); // default at half
 
-            this.Monitor.Log($"Hovered item: {this.HoverItem.Name} | Total items: {this.TotalItems} | Held amount: {this.StackAmount} | Hovered amount: {this.HoverItem.Stack}", LogLevel.Trace);
+            //this.Monitor.Log($"Hovered item: {this.HoverItem.Name} | Total items: {this.TotalItems} | Held amount: {this.StackAmount} | Hovered amount: {this.HoverItem.Stack}", LogLevel.Trace);
 
             // Create the split menu
-            this.SplitMenu = new StackSplitMenu(
-                OnStackAmountReceived,
-                this.StackAmount,
-                this.TotalItems / 2
-                );
+            this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.StackAmount);
 
             return EInputHandled.Consumed;
         }

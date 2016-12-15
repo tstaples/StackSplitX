@@ -5,9 +5,6 @@ using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StackSplitX.MenuHandlers
 {
@@ -19,10 +16,14 @@ namespace StackSplitX.MenuHandlers
             Selling
         }
 
+        // Default amount when shift+right clicking
+        private const int DefaultShopStackAmount = 5;
+
         private InventoryMenu Inventory = null;
         private Item ClickedItem = null;
         private Point ClickItemLocation;
         private int StackAmount = 0;
+        private int ShopCurrencyType = 0;
         private ESaleType SaleType;
 
         public ShopMenuHandler(IModHelper helper, IMonitor monitor)
@@ -35,13 +36,23 @@ namespace StackSplitX.MenuHandlers
             return 300f; // From ShopMenu.receiveRightClick
         }
 
+        protected override EInputHandled CancelMove()
+        {
+            // TODO: add mod config to set whether or not default behavior should be used when canceling
+            // StackAmount will be default for the appropriate sale type, so just fake the input being submitted.
+            OnStackAmountReceived(this.StackAmount.ToString());
+            return EInputHandled.NotHandled;
+        }
+
         protected override EInputHandled OpenSplitMenu()
         {
-            var shopMenu = this.NativeMenu as ShopMenu;
             try
             {
                 Debug.Assert(this.NativeMenu is ShopMenu);
+                var shopMenu = this.NativeMenu as ShopMenu;
+
                 this.Inventory = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(shopMenu, "inventory");
+                this.ShopCurrencyType = this.Helper.Reflection.GetPrivateValue<int>(this.NativeMenu, "currency");
             }
             catch (Exception e)
             {
@@ -49,33 +60,12 @@ namespace StackSplitX.MenuHandlers
                 return EInputHandled.NotHandled;
             }
 
+            // Check if it was the shop or inventory that was clicked and initialize the appropriate values
             this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
-            if (ClickedShopItem(this.ClickItemLocation))
-            {
-                this.Monitor.Log("Clicked shop", LogLevel.Trace);
-
-                this.StackAmount = 5; // Default shift-rightclick amount (TODO: acount for clicking inventory)
-                this.SaleType = ESaleType.Purchasing;
-                //this.StackAmount = (int)Math.Ceiling(this.HoverItem.Stack / 2.0); // default at half
-                // TODO
+            if (!TryShopClicked(this.ClickItemLocation) && !TryInventoryClicked(this.ClickItemLocation))
                 return EInputHandled.NotHandled;
-            }
 
-            this.ClickedItem = this.Inventory.getItemAt(this.ClickItemLocation.X, this.ClickItemLocation.Y);
-            if (this.ClickedItem == null || !shopMenu.highlightItemToSell(this.ClickedItem) || this.ClickedItem.Stack <= 1)
-            {
-                return EInputHandled.NotHandled;
-            }
-
-            this.Monitor.Log($"Clicked inventory item: {this.ClickedItem.Name}", LogLevel.Trace);
-            this.SaleType = ESaleType.Selling;
-            this.StackAmount = (int)Math.Ceiling(this.ClickedItem.Stack / 2.0);
-
-            this.SplitMenu = new StackSplitMenu(
-                OnStackAmountReceived,
-                this.StackAmount,
-                0
-                );
+            this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.StackAmount);
 
             return EInputHandled.Consumed;
         }
@@ -87,20 +77,48 @@ namespace StackSplitX.MenuHandlers
             {
                 if (this.StackAmount > 0)
                 {
-                    switch (this.SaleType)
+                    if (this.SaleType == ESaleType.Purchasing)
                     {
-                        case ESaleType.Purchasing:
-                            // TODO
-                            break;
-                        case ESaleType.Selling:
-                            SellItem(this.ClickedItem, this.StackAmount);
-                            break;
+                        BuyItem(this.ClickedItem, this.StackAmount);
                     }
-
+                    else if (this.SaleType == ESaleType.Selling)
+                    {
+                        SellItem(this.ClickedItem, this.StackAmount);
+                    }
                 }
             }
 
             base.OnStackAmountReceived(s);
+        }
+
+        private bool TryShopClicked(Point p)
+        {
+            var heldItem = this.Helper.Reflection.GetPrivateValue<Item>(this.NativeMenu, "heldItem");
+
+            this.ClickedItem = GetClickedShopItem(this.ClickItemLocation);
+            if (this.ClickedItem != null && (heldItem == null || this.ClickedItem.canStackWith(heldItem)))
+            {
+                this.StackAmount = DefaultShopStackAmount;
+                this.SaleType = ESaleType.Purchasing;
+
+                return true;
+            }
+            return false;
+        }
+
+        private bool TryInventoryClicked(Point p)
+        {
+            var shopMenu = this.NativeMenu as ShopMenu;
+
+            this.ClickedItem = this.Inventory.getItemAt(this.ClickItemLocation.X, this.ClickItemLocation.Y);
+            if (this.ClickedItem != null && shopMenu.highlightItemToSell(this.ClickedItem) && this.ClickedItem.Stack > 1)
+            {
+                this.SaleType = ESaleType.Selling;
+                this.StackAmount = (int)Math.Ceiling(this.ClickedItem.Stack / 2.0);
+
+                return true;
+            }
+            return false;
         }
 
         private void SellItem(Item item, int amount)
@@ -109,10 +127,9 @@ namespace StackSplitX.MenuHandlers
             this.StackAmount = amount; // Remove if we don't need to carry this around
 
             // Sell item
-            int currencyType = this.Helper.Reflection.GetPrivateValue<int>(this.NativeMenu, "currency");
             int price = CalculateSalePrice(item, amount);
-            ShopMenu.chargePlayer(Game1.player, currencyType, price);
-            this.Monitor.Log($"Charged player {price} for {amount} of {item.Name}");
+            ShopMenu.chargePlayer(Game1.player, this.ShopCurrencyType, price);
+            this.Monitor.Log($"Charged player {price} for {amount} of {item.Name}", LogLevel.Trace);
 
             // Update the stack amount/remove the item
             var actualInventory = this.Inventory.actualInventory;
@@ -167,16 +184,57 @@ namespace StackSplitX.MenuHandlers
             return -price;
         }
 
-        private bool ClickedShopItem(Point p)
+        private Item GetClickedShopItem(Point p)
         {
-            var shopMenu = this.NativeMenu as ShopMenu;
-            var forSaleButtons = this.Helper.Reflection.GetPrivateValue<List<ClickableComponent>>(shopMenu, "forSaleButtons");
-            for (int i = 0; i < forSaleButtons.Count; ++i)
+            var itemsForSale = this.Helper.Reflection.GetPrivateValue<List<Item>>(this.NativeMenu, "forSale");
+            int index = GetClickedItemIndex(p);
+            Debug.Assert(index < itemsForSale.Count);
+            return index >= 0 ? itemsForSale[index] : null;
+        }
+
+        private int GetClickedItemIndex(Point p)
+        {
+            int currentItemIndex = this.Helper.Reflection.GetPrivateValue<int>(this.NativeMenu, "currentItemIndex");
+            var forSaleButtons = this.Helper.Reflection.GetPrivateValue<List<ClickableComponent>>(this.NativeMenu, "forSaleButtons");
+            int saleButtonIndex = forSaleButtons.FindIndex(button => button.containsPoint(p.X, p.Y));
+            return currentItemIndex + saleButtonIndex;
+        }
+
+        private void BuyItem(Item item, int amount)
+        {
+            var priceAndStockField = this.Helper.Reflection.GetPrivateField<Dictionary<Item, int[]>>(this.NativeMenu, "itemPriceAndStock");
+            var priceAndStockMap = priceAndStockField.GetValue();
+            Debug.Assert(priceAndStockMap.ContainsKey(item));
+
+            // Calculate the number to purchase
+            int numInStock = priceAndStockMap[item][1];
+            int itemPrice = priceAndStockMap[item][0];
+            int currentMonies = ShopMenu.getPlayerCurrencyAmount(Game1.player, this.ShopCurrencyType);
+            amount = Math.Min(Math.Min(amount, currentMonies / itemPrice), numInStock);
+
+            this.Monitor.Log($"Attempting to purchase {amount} of {item.Name} for {itemPrice * amount}", LogLevel.Trace);
+
+            if (amount <= 0)
+                return;
+
+            var heldItem = this.Helper.Reflection.GetPrivateValue<Item>(this.NativeMenu, "heldItem");
+
+            // Try to purchase the item - method returns true if it should be removed from the shop since there's no more.
+            var purchaseMethodInfo = this.Helper.Reflection.GetPrivateMethod(this.NativeMenu, "tryToPurchaseItem");
+            var p = this.ClickItemLocation;
+            if (purchaseMethodInfo.Invoke<bool>(item, heldItem, amount, p.X, p.Y, GetClickedItemIndex(p)))
             {
-                if (forSaleButtons[i].bounds.Contains(p))
-                    return true;
+                this.Monitor.Log($"Purchase of {item.Name} successful", LogLevel.Trace);
+
+                // remove the purchased item from the stock etc.
+                priceAndStockMap.Remove(item);
+                priceAndStockField.SetValue(priceAndStockMap);
+
+                var itemsForSaleField = this.Helper.Reflection.GetPrivateField<List<Item>>(this.NativeMenu, "forSale");
+                var itemsForSale = itemsForSaleField.GetValue();
+                itemsForSale.Remove(item);
+                itemsForSaleField.SetValue(itemsForSale);
             }
-            return false;
         }
     }
 }

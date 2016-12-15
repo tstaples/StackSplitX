@@ -18,9 +18,6 @@ namespace StackSplitX
         /// <summary>The amount being currently held by the player.</summary>
         public int HeldStackAmount { get; private set; }
 
-        /// <summary>The amount in the original stack.</summary>
-        public int CurrentStackAmount { get; private set; }
-
         /// <summary>The dialogue title.</summary>
         public string Title { get; set; } = "Select Amount";
 
@@ -28,10 +25,9 @@ namespace StackSplitX
         private TextSubmittedDelegate OnTextSubmitted;
         private ClickableTextureComponent OKButton;
 
-        public StackSplitMenu(TextSubmittedDelegate textSubmittedCallback, int heldStackAmount, int currentStackAmount)
+        public StackSplitMenu(TextSubmittedDelegate textSubmittedCallback, int heldStackAmount)
         {
             this.OnTextSubmitted = textSubmittedCallback;
-            this.CurrentStackAmount = currentStackAmount;
             this.HeldStackAmount = heldStackAmount;
 
             this.InputTextBox = new InputTextBox(0, heldStackAmount.ToString())
