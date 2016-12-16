@@ -5,6 +5,7 @@ using StardewValley;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -96,12 +97,16 @@ namespace StackSplitX
         public Vector2 Extent { get; set; }
 
         public Color TextColor { get; set; } = Game1.textColor;
+        public Color HighlightTextColor { get; set; } = Color.White;
+        public Color HighlightColor { get; set; } = Color.Blue;
         public SpriteFont Font { get; set; } = Game1.smallFont;
-        public bool Selected { get; set; }
+        public bool Selected { get; set; } // IKeyboardSubscriber
         public bool NumbersOnly { get; set; } = false;
+        public bool HighlightByDefault { get; set; } = true; // TODO: make config option
         public string Text { get; private set; }
 
-        //private Texture2D TextboxTexture;
+        private Texture2D HighlightTexture;
+        private bool IsTextHighlighted = false;
         private int CharacterLimit = 0;
         private Caret Caret;
 
@@ -111,18 +116,41 @@ namespace StackSplitX
             this.Caret = new Caret(characterLimit);
 
             AppendString(defaultText);
+
+            // Create a 1x1 texture that we will scale up to draw the highlight
+            this.HighlightTexture = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
+            Color[] data = new Color[1] { this.HighlightColor };
+            this.HighlightTexture.SetData(data);
+
+            this.IsTextHighlighted = this.HighlightByDefault;
+            if (this.IsTextHighlighted)
+            {
+                SelectAllText();
+            }
         }
 
         /* Begin IKeyboardSubscriber implementation */
         #region IKeyboardSubscriber implementation
         public void RecieveTextInput(char inputChar)
         {
-            AppendCharacter(inputChar);
+            if (CanAppendChar(inputChar))
+            {
+                if (this.IsTextHighlighted)
+                    ClearText();
+
+                AppendCharacter(inputChar);
+            }
         }
 
         public void RecieveTextInput(string text)
         {
-            AppendString(text);
+            if (IsValidString(text))
+            {
+                if (this.IsTextHighlighted)
+                    ClearText();
+
+                AppendString(text);
+            }
         }
 
         public void RecieveCommandInput(char command)
@@ -132,7 +160,7 @@ namespace StackSplitX
             switch (key)
             {
                 case Keys.Back:
-                    // TODO: handle deleting all highlighted characters
+                    ClearTextIfHighlighted();
                     RemoveCharacterLeftOfCaret();
                     break;
                 case Keys.Enter:
@@ -149,22 +177,27 @@ namespace StackSplitX
             {
                 case Keys.Left:
                     this.Caret.Regress(1);
+                    CancelHighlight();
                     break;
                 case Keys.Right:
                     this.Caret.Advance(1, this.Text.Length);
+                    CancelHighlight();
                     break;
                 case Keys.Home:
                     this.Caret.Start();
+                    CancelHighlight();
                     break;
                 case Keys.End:
                     this.Caret.End(this.Text.Length);
+                    CancelHighlight();
                     break;
                 case Keys.Delete:
+                    ClearTextIfHighlighted();
                     RemoveCharacterRightOfCaret();
                     break;
                 case Keys.A:
+                    TrySelectAllText();
                     break;
-                // TODO: ctrl+A to select all
             }
         }
         #endregion IKeyboardSubscriber implementation
@@ -190,26 +223,73 @@ namespace StackSplitX
             // Part of the spritesheet containing the texture we want to draw
             var menuTextureSourceRect = new Rectangle(0, 256, 60, 60);
             IClickableMenu.drawTextureBox(spriteBatch, Game1.menuTexture, menuTextureSourceRect, (int)this.Position.X, (int)this.Position.Y, (int)this.Extent.X, (int)this.Extent.Y, Color.White);
-            spriteBatch.DrawString(this.Font, this.Text, this.Position + new Vector2(Game1.tileSize / 4, Game1.tileSize / 3), Game1.textColor);
 
             var textDimensions = this.Font.MeasureString(this.Text.Length > 0 ? this.Text : " ");
             var letterWidth = (textDimensions.X / (this.Text.Length > 0 ? this.Text.Length : 1));
+            var textPosition = this.Position + new Vector2(Game1.tileSize / 4, Game1.tileSize / 3);
+
+            // Draw the highlight texture
+            if (this.IsTextHighlighted && this.Text.Length > 0)
+            {
+                var highlightPos = new Vector2(textPosition.X, textPosition.Y - Game1.pixelZoom);
+                var destRect = new Rectangle((int)highlightPos.X, (int)highlightPos.Y, (int)textDimensions.X, (int)textDimensions.Y);
+                spriteBatch.Draw(this.HighlightTexture, destRect, this.HighlightColor * 0.75f);
+            }
+
+            // Draw the text
+            Color textColor = this.IsTextHighlighted ? this.HighlightTextColor : this.TextColor;
+            spriteBatch.DrawString(this.Font, this.Text, textPosition, textColor);
+
+            // Draw the caret
             int caretX = ((int)letterWidth * this.Caret.Index);
             // Offset by a small amount when were not at the end so the caret doesn't go on top of the letter
             caretX = (this.Caret.Index < this.Text.Length) ? caretX - Game1.pixelZoom : caretX;
-            spriteBatch.Draw(Game1.staminaRect, new Rectangle((int)this.Position.X + Game1.tileSize / 4 + caretX + Game1.pixelZoom, (int)this.Position.Y + Game1.tileSize / 3 - Game1.pixelZoom, 4, (int)textDimensions.Y), this.TextColor);
+            spriteBatch.Draw(Game1.staminaRect, 
+                new Rectangle((int)this.Position.X + Game1.tileSize / 4 + caretX + Game1.pixelZoom, 
+                              (int)this.Position.Y + Game1.tileSize / 3 - Game1.pixelZoom, 4, 
+                              (int)textDimensions.Y), 
+                this.TextColor);
         }
 
+        #region TextSelection
+        private void TrySelectAllText()
+        {
+            if (Utils.IsKeyDown(Keyboard.GetState(), Keys.LeftControl))
+                SelectAllText();
+        }
+
+        private void SelectAllText()
+        {
+            this.IsTextHighlighted = true;
+        }
+
+        private void CancelHighlight()
+        {
+            this.IsTextHighlighted = false;
+        }
+        #endregion TextSelection
+
         #region Text manipulation
-        private void AppendString(string s)
+        private bool CanAppendChar(char c)
+        {
+            return ((this.CharacterLimit == 0 || this.Text.Length < this.CharacterLimit) &&
+                    (!this.NumbersOnly || char.IsDigit(c)));
+        }
+
+        private bool IsValidString(string s)
         {
             if (s == null || s.Length == 0)
-                return;
+                return false;
 
             int dummy = 0;
             if (this.NumbersOnly && !int.TryParse(s, out dummy))
-                return;
+                return false;
+            return true;
+        }
 
+        private bool AppendString(string s)
+        {
+            Debug.Assert(IsValidString(s));
             if (this.CharacterLimit > 0 && s.Length > this.CharacterLimit)
             {
                 this.Text = s.Remove(this.CharacterLimit - 1);
@@ -221,16 +301,14 @@ namespace StackSplitX
 
             // Move the caret to the end
             this.Caret.End(this.Text.Length);
+            return true;
         }
 
         private void AppendCharacter(char c)
         {
-            if ((this.CharacterLimit == 0 || this.Text.Length < this.CharacterLimit) &&
-                (!this.NumbersOnly || char.IsDigit(c)))
-            {
-                this.Text += c;
-                this.Caret.Advance(1, this.Text.Length);
-            }
+            Debug.Assert(CanAppendChar(c));
+            this.Text += c;
+            this.Caret.Advance(1, this.Text.Length);
         }
 
         private void RemoveCharacterLeftOfCaret()
@@ -249,6 +327,19 @@ namespace StackSplitX
             {
                 this.Text = this.Text.Remove(this.Caret.Index, 1);
             }
+        }
+
+        private void ClearText()
+        {
+            this.Text = "";
+            this.Caret.Start();
+            this.IsTextHighlighted = false;
+        }
+
+        private void ClearTextIfHighlighted()
+        {
+            if (this.IsTextHighlighted)
+                ClearText();
         }
         #endregion Text manipulation
     }

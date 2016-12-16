@@ -102,6 +102,11 @@ namespace StackSplitX
             return false;
         }
 
+        public static bool IsKeyDown(KeyboardState state, Keys key)
+        {
+            return state.IsKeyDown(key);
+        }
+
         public static bool WasPressedThisFrame(KeyboardState prior, KeyboardState current, Keys key)
         {
             return (prior.IsKeyUp(key) && current.IsKeyDown(key));
