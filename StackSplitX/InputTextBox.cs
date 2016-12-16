@@ -133,7 +133,7 @@ namespace StackSplitX
             {
                 case Keys.Back:
                     // TODO: handle deleting all highlighted characters
-                    RemoveCharacterAtCaret();
+                    RemoveCharacterLeftOfCaret();
                     break;
                 case Keys.Enter:
                     Submit();
@@ -159,8 +159,12 @@ namespace StackSplitX
                 case Keys.End:
                     this.Caret.End(this.Text.Length);
                     break;
+                case Keys.Delete:
+                    RemoveCharacterRightOfCaret();
+                    break;
+                case Keys.A:
+                    break;
                 // TODO: ctrl+A to select all
-                // TODO: handle delete key which removes character on right side of caret
             }
         }
         #endregion IKeyboardSubscriber implementation
@@ -229,13 +233,21 @@ namespace StackSplitX
             }
         }
 
-        private void RemoveCharacterAtCaret()
+        private void RemoveCharacterLeftOfCaret()
         {
             // The caret is always to the right of the character we want to remove.
             if (this.Caret.Index > 0)
             {
                 this.Text = this.Text.Remove(this.Caret.Index - 1, 1);
                 this.Caret.Regress(1);
+            }
+        }
+
+        private void RemoveCharacterRightOfCaret()
+        {
+            if (this.Caret.Index < this.Text.Length)
+            {
+                this.Text = this.Text.Remove(this.Caret.Index, 1);
             }
         }
         #endregion Text manipulation
