@@ -210,7 +210,7 @@ namespace StackSplitX.MenuHandlers
             int numInStock = priceAndStockMap[item][1];
             int itemPrice = priceAndStockMap[item][0];
             int currentMonies = ShopMenu.getPlayerCurrencyAmount(Game1.player, this.ShopCurrencyType);
-            amount = Math.Min(Math.Min(amount, currentMonies / itemPrice), numInStock);
+            amount = Math.Min(Math.Min(amount, currentMonies / itemPrice), Math.Min(numInStock, item.maximumStackSize()));
 
             this.Monitor.Log($"Attempting to purchase {amount} of {item.Name} for {itemPrice * amount}", LogLevel.Trace);
 

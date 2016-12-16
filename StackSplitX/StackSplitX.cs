@@ -73,6 +73,8 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
+            //this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
+
             // Resize event; ignore
             if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType() && this.WasResizeEvent)
             {
@@ -146,27 +148,5 @@ namespace StackSplitX
         {
             this.CurrentMenuHandler?.Draw(Game1.spriteBatch);
         }
-
-        #region DebugMenuPrint
-        private void DebugPrintMenuInfo(IClickableMenu priorMenu, IClickableMenu newMenu)
-        {
-#if DEBUG && TRACE
-            try
-            {
-                string priorName = "None";
-                if (priorMenu != null)
-                {
-                    priorName = priorMenu.GetType().Name;
-                }
-                string newName = newMenu.GetType().Name;
-                Monitor.Log("Menu changed from: " + priorName + " to " + newName);
-            }
-            catch (Exception ex)
-            {
-                Monitor.Log("Error getting menu name: " + ex);
-            }
-#endif
-        }
-        #endregion DebugMenuPrint
     }
 }
