@@ -91,9 +91,12 @@ namespace StackSplitX.MenuHandlers
         private bool TryShopClicked(Point p)
         {
             var heldItem = this.Helper.Reflection.GetPrivateValue<Item>(this.NativeMenu, "heldItem");
+            int currentMonies = ShopMenu.getPlayerCurrencyAmount(Game1.player, this.ShopCurrencyType);
 
             this.ClickedItem = GetClickedShopItem(this.ClickItemLocation);
-            if (this.ClickedItem != null && (heldItem == null || this.ClickedItem.canStackWith(heldItem)))
+            if (this.ClickedItem != null && (heldItem == null || this.ClickedItem.canStackWith(heldItem)) &&
+                this.ClickedItem.canStackWith(this.ClickedItem) && // Item type is stackable
+                currentMonies >= this.ClickedItem.salePrice()) // Can afford
             {
                 this.StackAmount = DefaultShopStackAmount;
                 this.SaleType = ESaleType.Purchasing;
