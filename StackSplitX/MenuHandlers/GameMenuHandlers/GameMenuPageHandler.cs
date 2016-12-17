@@ -9,10 +9,9 @@ namespace StackSplitX.MenuHandlers
 {
     public abstract class GameMenuPageHandler<TPageType> : IGameMenuPageHandler where TPageType : IClickableMenu
     {
-        protected TPageType MenuPage => this.NativePage as TPageType;
 
         protected IClickableMenu NativeMenu { get; private set; }
-        protected IClickableMenu NativePage { get; private set; }
+        protected TPageType MenuPage { get; private set; }
         protected IModHelper Helper { get; private set; }
         protected IMonitor Monitor { get; private set; }
 
@@ -25,13 +24,13 @@ namespace StackSplitX.MenuHandlers
         public virtual void Open(IClickableMenu menu, IClickableMenu page)
         {
             this.NativeMenu = menu;
-            this.NativePage = page;
+            this.MenuPage = page as TPageType;
         }
 
         public virtual void Close()
         {
             this.NativeMenu = null;
-            this.NativePage = null;
+            this.MenuPage = null;
         }
 
         public virtual EInputHandled OpenSplitMenu(out int stackAmount)

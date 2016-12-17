@@ -3,16 +3,19 @@ using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
+using System.Diagnostics;
 
 namespace StackSplitX.MenuHandlers
 {
-    public abstract class BaseMenuHandler : IMenuHandler
+    public abstract class BaseMenuHandler<TMenuType> 
+        : IMenuHandler where TMenuType : IClickableMenu
     {
-        private bool IsMenuOpen = false;
         protected StackSplitMenu SplitMenu = null;
-        protected IClickableMenu NativeMenu { get; set; }
+        protected TMenuType NativeMenu { get; private set; }
         protected IModHelper Helper { get; private set; }
         protected IMonitor Monitor { get; private set; }
+
+        private bool IsMenuOpen = false;
 
         public BaseMenuHandler(IModHelper helper, IMonitor monitor)
         {
@@ -27,7 +30,8 @@ namespace StackSplitX.MenuHandlers
 
         public virtual void Open(IClickableMenu menu)
         {
-            this.NativeMenu = menu;
+            Debug.Assert(menu is TMenuType);
+            this.NativeMenu = menu as TMenuType;
             this.IsMenuOpen = true;
         }
 

@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace StackSplitX.MenuHandlers
 {
-    public class ItemGrabMenuHandler : BaseMenuHandler
+    public class ItemGrabMenuHandler : BaseMenuHandler<ItemGrabMenu>
     {
         private InventoryMenu PlayerInventoryMenu = null;
         private InventoryMenu ItemsToGrabMenu = null;
@@ -26,7 +26,7 @@ namespace StackSplitX.MenuHandlers
 
         protected override bool CanOpenSplitMenu()
         {
-            bool canOpen = (this.NativeMenu as ItemGrabMenu).allowRightClick;
+            bool canOpen = this.NativeMenu.allowRightClick;
             return (canOpen && base.CanOpenSplitMenu());
         }
 
@@ -64,14 +64,11 @@ namespace StackSplitX.MenuHandlers
         {
             try
             {
-                Debug.Assert(this.NativeMenu is MenuWithInventory);
-                var nativeMenuWithInventory = (this.NativeMenu as MenuWithInventory);
-
-                this.PlayerInventoryMenu = nativeMenuWithInventory.inventory;
+                this.PlayerInventoryMenu = this.NativeMenu.inventory;
                 this.ItemsToGrabMenu = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "ItemsToGrabMenu");
 
                 // Emulate the right click method that would normally happen.
-                this.HoverItem = nativeMenuWithInventory.hoveredItem;
+                this.HoverItem = this.NativeMenu.hoveredItem;
             }
             catch (Exception e)
             {

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace StackSplitX.MenuHandlers
 {
-    public class ShopMenuHandler : BaseMenuHandler
+    public class ShopMenuHandler : BaseMenuHandler<ShopMenu>
     {
         internal enum ESaleType
         {
@@ -48,10 +48,7 @@ namespace StackSplitX.MenuHandlers
         {
             try
             {
-                Debug.Assert(this.NativeMenu is ShopMenu);
-                var shopMenu = this.NativeMenu as ShopMenu;
-
-                this.Inventory = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(shopMenu, "inventory");
+                this.Inventory = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
                 this.ShopCurrencyType = this.Helper.Reflection.GetPrivateValue<int>(this.NativeMenu, "currency");
             }
             catch (Exception e)
@@ -108,10 +105,8 @@ namespace StackSplitX.MenuHandlers
 
         private bool TryInventoryClicked(Point p)
         {
-            var shopMenu = this.NativeMenu as ShopMenu;
-
             this.ClickedItem = this.Inventory.getItemAt(this.ClickItemLocation.X, this.ClickItemLocation.Y);
-            if (this.ClickedItem != null && shopMenu.highlightItemToSell(this.ClickedItem) && this.ClickedItem.Stack > 1)
+            if (this.ClickedItem != null && this.NativeMenu.highlightItemToSell(this.ClickedItem) && this.ClickedItem.Stack > 1)
             {
                 this.SaleType = ESaleType.Selling;
                 this.StackAmount = (int)Math.Ceiling(this.ClickedItem.Stack / 2.0);

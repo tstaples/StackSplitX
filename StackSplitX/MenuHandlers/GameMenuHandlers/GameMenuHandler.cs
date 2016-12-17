@@ -8,14 +8,14 @@ using System.Diagnostics;
 
 namespace StackSplitX.MenuHandlers
 {
-    public class GameMenuHandler : BaseMenuHandler
+    public class GameMenuHandler : BaseMenuHandler<GameMenu>
     {
         protected const int InvalidTab = -1;
 
         private Dictionary<int, IGameMenuPageHandler> PageHandlers;
         private IGameMenuPageHandler CurrentPageHandler = null;
         private int PreviousTab = InvalidTab;
-        private int CurrentTab => (this.NativeMenu as GameMenu).currentTab;
+        private int CurrentTab => this.NativeMenu.currentTab;
 
         public GameMenuHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
@@ -39,7 +39,6 @@ namespace StackSplitX.MenuHandlers
         protected override bool CanOpenSplitMenu()
         {
             // Check the current tab is valid
-            Debug.Assert(this.NativeMenu is GameMenu);
             return this.PageHandlers.ContainsKey(this.CurrentTab);
         }
 
