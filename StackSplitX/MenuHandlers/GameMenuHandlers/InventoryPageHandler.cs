@@ -7,38 +7,29 @@ using System.Diagnostics;
 
 namespace StackSplitX.MenuHandlers
 {
-    public class GameMenuHandler : BaseMenuHandler
+    public class InventoryPageHandler : GameMenuPageHandler<InventoryPage>
     {
-        private InventoryPage InventoryPage = null;
         private InventoryMenu InventoryMenu = null;
         private Item HeldItem = null;
         private Item HoveredItem = null;
 
-        public GameMenuHandler(IModHelper helper, IMonitor monitor)
+        public InventoryPageHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
         }
 
-        protected override bool CanOpenSplitMenu()
+        public override EInputHandled OpenSplitMenu(out int stackAmount)
         {
-            // Check the current tab is valid
-            Debug.Assert(this.NativeMenu != null && this.NativeMenu is GameMenu);
-            return (this.NativeMenu as GameMenu).currentTab == GameMenu.inventoryTab;
-        }
-
-        protected override EInputHandled OpenSplitMenu()
-        {
+            stackAmount = 0;
             bool isAlreadyHoldingItem = (this.HeldItem != null);
 
             try
             {
-                var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(this.NativeMenu, "pages");
-                this.InventoryPage = pages[GameMenu.inventoryTab] as InventoryPage;
-                this.InventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.InventoryPage, "inventory");
-                this.HoveredItem = Helper.Reflection.GetPrivateValue<Item>(this.InventoryPage, "hoveredItem");
+                this.InventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
+                this.HoveredItem = Helper.Reflection.GetPrivateValue<Item>(this.MenuPage, "hoveredItem");
 
                 // Get the current held item if any
-                var heldItemField = this.Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "heldItem");
+                var heldItemField = this.Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
                 this.HeldItem = heldItemField.GetValue();
                 // Emulate the right click method that would normally happen (native code passes in held item hence above).
                 this.HeldItem = this.InventoryMenu.rightClick(Game1.getMouseX(), Game1.getMouseY(), this.HeldItem);
@@ -59,24 +50,16 @@ namespace StackSplitX.MenuHandlers
                 return EInputHandled.NotHandled;
             }
 
-            // Create the split menu
-            this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.HeldItem.Stack);
+            stackAmount = this.HeldItem.Stack;
 
             return EInputHandled.Consumed;
         }
 
-        protected override void OnStackAmountReceived(string s)
+        // TODO: improve this
+        public override void OnStackAmountEntered(int amount)
         {
-            int amount = -1;
-            if (!int.TryParse(s, out amount))
-            {
-                base.OnStackAmountReceived(s);
-                return;
-            }
-
             if (amount < 0)
             {
-                base.OnStackAmountReceived(s);
                 return;
             }
 
@@ -92,7 +75,7 @@ namespace StackSplitX.MenuHandlers
                 numHeld = 0;
 
                 // Remove the held item
-                Helper.Reflection.GetPrivateField<Item>(this.InventoryPage, "heldItem").SetValue(null);
+                Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem").SetValue(null);
             }
             else if (amount >= totalItems)
             {
@@ -120,8 +103,6 @@ namespace StackSplitX.MenuHandlers
             this.HeldItem.Stack = numHeld;
             if (this.HoveredItem != null)
                 this.HoveredItem.Stack = numHovered;
-
-            base.OnStackAmountReceived(s);
         }
     }
 }

@@ -31,6 +31,7 @@ namespace StackSplitX
                 { typeof(GameMenu), new GameMenuHandler(helper, this.Monitor) },
                 { typeof(ShopMenu), new ShopMenuHandler(helper, this.Monitor) },
                 { typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper, this.Monitor) }
+                //{ typeof(CraftingPage), new CraftingPageHandler(helper, this.Monitor) }
                 //{ typeof(JunimoNoteMenu), new JunimoNoteMenuHandler(helper, this.Monitor) }
             };
         }
@@ -73,12 +74,11 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            //this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
+            this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
 
             // Resize event; ignore
-            if (e.PriorMenu != null && e.PriorMenu.GetType() == e.NewMenu.GetType() && this.WasResizeEvent)
+            if (e.PriorMenu?.GetType() == e.NewMenu?.GetType() && this.WasResizeEvent)
             {
-                this.Monitor.Log("was resize", LogLevel.Trace);
                 this.WasResizeEvent = false;
                 return;
             }
@@ -124,8 +124,7 @@ namespace StackSplitX
         {
             // Intercept keyboard input while the tooltip is active so numbers don't change the actively equipped item etc.
             // TODO: remove null checks if these events are only called subscribed when it's valid
-            if (this.CurrentMenuHandler != null && 
-                this.CurrentMenuHandler.HandleKeyboardInput(e.KeyPressed) == EInputHandled.Handled)
+            if (this.CurrentMenuHandler?.HandleKeyboardInput(e.KeyPressed) == EInputHandled.Handled)
             {
                 // Obey unless we're hitting 'cancel' keys.
                 if (e.KeyPressed != Keys.Escape)
