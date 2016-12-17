@@ -30,12 +30,13 @@ namespace StackSplitX
             this.OnTextSubmitted = textSubmittedCallback;
             this.HeldStackAmount = heldStackAmount;
 
-            this.InputTextBox = new InputTextBox(0, heldStackAmount.ToString())
+            // Character limit of 4 since max stack size of anything (afaik is 999).
+            this.InputTextBox = new InputTextBox(4, heldStackAmount.ToString())
             {
                 Position = new Vector2(Game1.getMouseX(), Game1.getMouseY() - Game1.tileSize),
                 Extent = new Vector2(Game1.tileSize * 3, Game1.tileSize),
                 NumbersOnly = true,
-                Selected = true
+                Selected = true,
             };
             this.InputTextBox.OnSubmit += (sender) => Submit(sender.Text);
             Game1.keyboardDispatcher.Subscriber = this.InputTextBox;

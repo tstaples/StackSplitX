@@ -73,7 +73,7 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            //this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
+            this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
 
             // Resize event; ignore
             if (e.PriorMenu?.GetType() == e.NewMenu?.GetType() && this.WasResizeEvent)
