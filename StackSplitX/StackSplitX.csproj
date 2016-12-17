@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="InputTextBox.cs" />
     <Compile Include="MenuHandlers\BaseMenuHandler.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandlers\BuyAction.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\CraftingPageHandler.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\GameMenuHandler.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\InventoryPageHandler.cs" />
@@ -54,7 +55,10 @@
     <Compile Include="MenuHandlers\IMenuHandler.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\IGameMenuPageHandler.cs" />
     <Compile Include="MenuHandlers\ItemGrabMenuHandler.cs" />
-    <Compile Include="MenuHandlers\ShopMenuHandler.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandlers\IShopAction.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandlers\SellAction.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandlers\ShopAction.cs" />
+    <Compile Include="MenuHandlers\ShopMenuHandlers\ShopMenuHandler.cs" />
     <Compile Include="StackSplitMenu.cs" />
     <Compile Include="StackSplitX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

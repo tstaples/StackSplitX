@@ -31,7 +31,6 @@ namespace StackSplitX
                 { typeof(GameMenu), new GameMenuHandler(helper, this.Monitor) },
                 { typeof(ShopMenu), new ShopMenuHandler(helper, this.Monitor) },
                 { typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper, this.Monitor) }
-                //{ typeof(CraftingPage), new CraftingPageHandler(helper, this.Monitor) }
                 //{ typeof(JunimoNoteMenu), new JunimoNoteMenuHandler(helper, this.Monitor) }
             };
         }
@@ -64,7 +63,7 @@ namespace StackSplitX
         {
             if (this.CurrentMenuHandler != null)
             {
-                this.Monitor.Log("[OnMenuClosed] Closing current menu handler", LogLevel.Trace);
+                //this.Monitor.Log("[OnMenuClosed] Closing current menu handler", LogLevel.Trace);
                 this.CurrentMenuHandler.Close();
                 this.CurrentMenuHandler = null;
 
@@ -74,7 +73,7 @@ namespace StackSplitX
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
+            //this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
 
             // Resize event; ignore
             if (e.PriorMenu?.GetType() == e.NewMenu?.GetType() && this.WasResizeEvent)
