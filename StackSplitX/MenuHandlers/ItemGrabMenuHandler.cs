@@ -227,8 +227,7 @@ namespace StackSplitX.MenuHandlers
 
         private Item GetHeldItem()
         {
-            var nativeMenuWithInventory = (this.NativeMenu as MenuWithInventory);
-            return nativeMenuWithInventory.heldItem;
+            return this.NativeMenu.heldItem;
         }
     }
 }

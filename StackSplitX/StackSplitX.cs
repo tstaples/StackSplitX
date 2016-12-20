@@ -30,7 +30,8 @@ namespace StackSplitX
             {
                 { typeof(GameMenu), new GameMenuHandler(helper, this.Monitor) },
                 { typeof(ShopMenu), new ShopMenuHandler(helper, this.Monitor) },
-                { typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper, this.Monitor) }
+                { typeof(ItemGrabMenu), new ItemGrabMenuHandler(helper, this.Monitor) },
+                { typeof(CraftingPage), new CraftingMenuHandler(helper, this.Monitor) }
                 //{ typeof(JunimoNoteMenu), new JunimoNoteMenuHandler(helper, this.Monitor) }
             };
         }
