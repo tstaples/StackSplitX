@@ -48,6 +48,7 @@
     <Compile Include="InputTextBox.cs" />
     <Compile Include="MenuHandlers\BaseMenuHandler.cs" />
     <Compile Include="MenuHandlers\CraftingMenuHandler.cs" />
+    <Compile Include="MenuHandlers\InventoryHandler.cs" />
     <Compile Include="MenuHandlers\ShopMenuHandlers\BuyAction.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\CraftingPageHandler.cs" />
     <Compile Include="MenuHandlers\GameMenuHandlers\GameMenuHandler.cs" />

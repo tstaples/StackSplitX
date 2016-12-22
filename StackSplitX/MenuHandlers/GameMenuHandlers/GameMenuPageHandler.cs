@@ -39,6 +39,11 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.NotHandled;
         }
 
+        public virtual EInputHandled CancelMove()
+        {
+            return EInputHandled.NotHandled;
+        }
+
         public virtual void OnStackAmountEntered(int amount)
         {
 

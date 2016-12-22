@@ -78,10 +78,9 @@ namespace StackSplitX.MenuHandlers
                     // Cancel the current operation
                     if (this.SplitMenu != null)
                     {
+                        // TODO: return this value if it's consumed?
                         CancelMove();
                     }
-
-                    // TODO: have this return consumed for shops and stuff where we need to act before the click happens
                     return OpenSplitMenu();
                 }
                 return EInputHandled.NotHandled;

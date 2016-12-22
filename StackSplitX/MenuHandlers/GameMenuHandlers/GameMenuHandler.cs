@@ -36,6 +36,14 @@ namespace StackSplitX.MenuHandlers
             this.PreviousTab = InvalidTab;
         }
 
+        protected override EInputHandled CancelMove()
+        {
+            base.CancelMove();
+            return this.CurrentPageHandler != null
+                ? this.CurrentPageHandler.CancelMove()
+                : EInputHandled.NotHandled;
+        }
+
         protected override bool CanOpenSplitMenu()
         {
             // Check the current tab is valid

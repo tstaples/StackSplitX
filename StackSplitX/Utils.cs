@@ -8,6 +8,15 @@ using Microsoft.Xna.Framework.Input;
 
 namespace StackSplitX
 {
+    public static class LogExtensions
+    {
+        public static void Log(this IMonitor monitor, bool condition, string message, LogLevel level = LogLevel.Trace)
+        {
+            if (condition)
+                monitor.Log(message, level);
+        }
+    }
+
     public class Utils
     {
         public static string ArrayToString<T>(T[] array)
