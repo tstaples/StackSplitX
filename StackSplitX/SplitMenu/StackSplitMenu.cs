@@ -8,6 +8,7 @@ using StardewValley.Menus;
 using StardewValley;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
+using StardewValley.BellsAndWhistles;
 
 namespace StackSplitX
 {
@@ -45,7 +46,7 @@ namespace StackSplitX
             this.InputTextBox = new InputTextBox(4, heldStackAmount.ToString())
             {
                 Position = new Vector2(Game1.getMouseX(), Game1.getMouseY() - Game1.tileSize),
-                Extent = new Vector2(Game1.tileSize * 3, Game1.tileSize),
+                Extent = new Vector2(Game1.tileSize * 2, Game1.tileSize),
                 NumbersOnly = true,
                 Selected = true,
             };
@@ -76,14 +77,22 @@ namespace StackSplitX
         /// <param name="b">Spritebatch to draw with.</param>
         public void draw(SpriteBatch b)
         {
-			//SpriteText.drawStringWithScrollCenteredAt(b, this.Title, Game1.viewport.Width / 2, Game1.viewport.Height / 2 - Game1.tileSize * 2, "", 1f, -1, 0, 0.88f, false);
             this.InputTextBox.Draw(b);
             this.OKButton.draw(b);
             
             // TODO: find a nicer way to do this or encapsulate it
             if (!Game1.options.hardwareCursor)
             {
-                b.Draw(Game1.mouseCursors, new Vector2((float)Game1.getMouseX(), (float)Game1.getMouseY()), new Rectangle?(Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16)), Color.White * Game1.mouseCursorTransparency, 0f, Vector2.Zero, (float)Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 1f);
+                b.Draw(Game1.mouseCursors, new Vector2(
+                    Game1.getMouseX(), 
+                    Game1.getMouseY()), 
+                    Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), 
+                    Color.White * Game1.mouseCursorTransparency, 
+                    0f, 
+                    Vector2.Zero, 
+                    Game1.pixelZoom + Game1.dialogueButtonScale / 150f, 
+                    SpriteEffects.None, 
+                    1f);
             }
         }
 
