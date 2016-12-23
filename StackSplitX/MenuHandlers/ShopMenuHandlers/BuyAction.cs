@@ -58,7 +58,7 @@ namespace StackSplitX.MenuHandlers
             int overflow = Math.Max((numHeld + amount) - this.ClickedItem.maximumStackSize(), 0);
             amount -= overflow;
 
-            this.Monitor.Log($"Attempting to purchase {amount} of {this.ClickedItem.Name} for {itemPrice * amount}", LogLevel.Trace);
+            this.Monitor.DebugLog($"Attempting to purchase {amount} of {this.ClickedItem.Name} for {itemPrice * amount}");
 
             if (amount <= 0)
                 return;
@@ -68,7 +68,7 @@ namespace StackSplitX.MenuHandlers
             int index = BuyAction.GetClickedItemIndex(this.Reflection, this.NativeShopMenu, clickLocation);
             if (purchaseMethodInfo.Invoke<bool>(this.ClickedItem, heldItem, amount, clickLocation.X, clickLocation.Y, index))
             {
-                this.Monitor.Log($"Purchase of {this.ClickedItem.Name} successful", LogLevel.Trace);
+                this.Monitor.DebugLog($"Purchase of {this.ClickedItem.Name} successful");
 
                 // remove the purchased item from the stock etc.
                 priceAndStockMap.Remove(this.ClickedItem);

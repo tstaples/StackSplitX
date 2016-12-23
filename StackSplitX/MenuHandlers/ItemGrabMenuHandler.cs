@@ -109,14 +109,11 @@ namespace StackSplitX.MenuHandlers
             // Do nothing if we're not hovering over an item
             if (this.HoverItem == null || this.HoverItem.Stack <= 1)
             {
-                //this.Monitor.Log("No hover item", LogLevel.Trace);
                 return EInputHandled.NotHandled;
             }
 
             this.TotalItems = this.HoverItem.Stack;
             this.StackAmount = (int)Math.Ceiling(this.TotalItems / 2.0); // default at half
-
-            //this.Monitor.Log($"Hovered item: {this.HoverItem.Name} | Total items: {this.TotalItems} | Held amount: {this.StackAmount} | Hovered amount: {this.HoverItem.Stack}", LogLevel.Trace);
 
             // Create the split menu
             this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.StackAmount);
@@ -258,9 +255,9 @@ namespace StackSplitX.MenuHandlers
 
                 this.CallbacksHooked = false;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                this.Monitor.Log("Failed to restore native callbacks");
+                this.Monitor.Log($"Failed to restore native callbacks: {e}", LogLevel.Error);
             }
         }
     }

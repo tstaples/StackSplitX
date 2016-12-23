@@ -98,7 +98,7 @@ namespace StackSplitX
         /// <summary>Callback for the menu changed event; switches the currently handler to the one for the new menu type.</summary>
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
-            this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
+            this.Monitor.DebugLog($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}");
 
             // Resize event; ignore
             if (e.PriorMenu?.GetType() == e.NewMenu?.GetType() && this.WasResizeEvent)

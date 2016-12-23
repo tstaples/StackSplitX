@@ -52,7 +52,7 @@ namespace StackSplitX.MenuHandlers
             }
             catch (Exception e)
             {
-                this.Monitor.Log($"Failed to get native shop data: {e}");
+                this.Monitor.Log($"Failed to get native shop data: {e}", LogLevel.Error);
             }
         }
 
