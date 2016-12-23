@@ -14,11 +14,20 @@ namespace StackSplitX
 {
     public class StackSplitX : Mod
     {
+        /// <summary>Are we subscribed to the events listened to while a handler is active.</summary>
         private bool IsSubscribed = false;
+
+        /// <summary>Handlers mapped to the type of menu they handle.</summary>
         private Dictionary<Type, IMenuHandler> MenuHandlers;
+
+        /// <summary>The handler for the current menu.</summary>
         private IMenuHandler CurrentMenuHandler;
+
+        /// <summary>Used to avoid resize events sent to menu changed.</summary>
         private bool WasResizeEvent = false;
 
+        /// <summary>Mod entry point.</summary>
+        /// <param name="helper">Mod helper.</param>
         public override void Entry(IModHelper helper)
         {
             MenuEvents.MenuChanged += OnMenuChanged;
@@ -36,6 +45,7 @@ namespace StackSplitX
             };
         }
 
+        /// <summary>Subscribes to the events we care about when a handler is active.</summary>
         private void SubscribeEvents()
         {
             if (!this.IsSubscribed)
@@ -48,6 +58,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Unsubscribes from events when the handler is no longer active.</summary>
         private void UnsubscribeEvents()
         {
             if (this.IsSubscribed)
@@ -60,6 +71,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Callback for the menu closed event; closes the current handler and unsubscribes from the events.</summary>
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed e)
         {
             if (this.CurrentMenuHandler != null)
@@ -72,6 +84,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Callback for the menu changed event; switches the currently handler to the one for the new menu type.</summary>
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged e)
         {
             this.Monitor.Log($"Menu changed from {e?.PriorMenu} to {e?.NewMenu}", LogLevel.Trace);
@@ -99,8 +112,8 @@ namespace StackSplitX
                 SubscribeEvents();
             }
         }
-        
-        
+
+        /// <summary>Callback for the mouse changed event; forwards the input to the current handler and consumes it if the handler requests so.</summary>
         private void OnMouseStateChanged(object sender, EventArgsMouseStateChanged e)
         {
             if (this.CurrentMenuHandler != null && this.CurrentMenuHandler.IsOpen())
@@ -120,6 +133,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Callback for the keypressed event. Forwards it to the handler and consumes it while the tooltip is active.</summary>
         private void OnKeyPressed(object sender, EventArgsKeyPressed e)
         {
             // Intercept keyboard input while the tooltip is active so numbers don't change the actively equipped item etc.
@@ -138,11 +152,13 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Callback for the UpdateTick event. Updates the current handler.</summary>
         private void OnUpdate(object sender, EventArgs e)
         {
             this.CurrentMenuHandler?.Update();
         }
 
+        /// <summary>Callback for the Draw event. Tells the current handler to draw the split menu if it's active.</summary>
         private void OnDraw(object sender, EventArgs e)
         {
             this.CurrentMenuHandler?.Draw(Game1.spriteBatch);

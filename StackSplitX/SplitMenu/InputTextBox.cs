@@ -11,105 +11,64 @@ using System.Text;
 
 namespace StackSplitX
 {
-    internal sealed class Caret
-    {
-        // TODO: add draw calls/blink timer (or do that in a different class)
-        /// <summary>
-        /// Current index of the caret.
-        /// </summary>
-        public int Index { get; private set; } = 0;
-
-        /// <summary>
-        /// Optional maximum index of the caret. 0 = no limit.
-        /// </summary>
-        private int MaxLength = 0;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="maxLength">The optional max length of the string the caret is navigating.</param>
-        public Caret(int maxLength)
-        {
-            // The caret must always be 1 index ahead so it must be able to be positioned thusly
-            this.MaxLength = maxLength > 0 ? maxLength + 1 : maxLength;
-        }
-
-        /// <summary>
-        /// Moves the caret forward.
-        /// </summary>
-        /// <param name="amount">The amount to advance by.</param>
-        public void Advance(int amount, int textLength)
-        {
-            UpdateIndex(this.Index + amount, textLength);
-        }
-
-        /// <summary>
-        /// Moves the caret back.
-        /// </summary>
-        /// <param name="amount">The amount to move back by.</param>
-        public void Regress(int amount)
-        {
-            UpdateIndex(this.Index - amount);
-        }
-        
-        /// <summary>
-        /// Move the caret to the start.
-        /// </summary>
-        public void Start()
-        {
-            this.Index = 0;
-        }
-
-        /// <summary>
-        /// Move the caret to the end of the text.
-        /// </summary>
-        /// <param name="textLength">Current length of the text.</param>
-        public void End(int textLength)
-        {
-            this.Index = (this.MaxLength > 0) ? Math.Min(this.MaxLength, textLength) : textLength;
-        }
-
-        /// <summary>
-        /// Moves the caret to the specified index if it's within bounds.
-        /// </summary>
-        /// <param name="newIndex">The new caret index.</param>
-        private void UpdateIndex(int newIndex, int textLength = 0)
-        {
-            if (newIndex >= 0 && 
-                (this.MaxLength == 0 || newIndex < this.MaxLength) && 
-                (textLength == 0 || newIndex <= textLength))
-            {
-                this.Index = newIndex;
-            }
-        }
-    }
-
+    /// <summary>Custom implementation of the NameMenu input text box that has additional functionality.</summary>
     public class InputTextBox : IKeyboardSubscriber
     {
         // TODO: create proper event args
+        /// <summary>Generic event.</summary>
+        /// <param name="textbox">Textbox the event originated from.</param>
         public delegate void InputTextboxEvent(InputTextBox textbox);
-        public event InputTextboxEvent OnClick;
-        public event InputTextboxEvent OnSubmit;
-        public event InputTextboxEvent OnGainFocus;
-        public event InputTextboxEvent OnLoseFocus;
 
+        /// <summary>Invoked when the text is submitted.</summary>
+        public event InputTextboxEvent OnSubmit;
+        //public event InputTextboxEvent OnClick;
+        //public event InputTextboxEvent OnGainFocus;
+        //public event InputTextboxEvent OnLoseFocus;
+
+        /// <summary>Position of the text box.</summary>
         public Vector2 Position { get; set; }
+        /// <summary>Extent of the text box.</summary>
         public Vector2 Extent { get; set; }
 
+        /// <summary>Regular text color.</summary>
         public Color TextColor { get; set; } = Game1.textColor;
+        
+        /// <summary>Text color when the text is highlighted. This should contrast with HighlightColor.</summary>
         public Color HighlightTextColor { get; set; } = Color.White;
+        
+        /// <summary>The background color of the highlighted text.</summary>
         public Color HighlightColor { get; set; } = Color.Blue;
+        
+        /// <summary>The text font.</summary>
         public SpriteFont Font { get; set; } = Game1.smallFont;
+        
+        /// <summary>Is the text selected? Unused.</summary>
         public bool Selected { get; set; } // IKeyboardSubscriber
+        
+        /// <summary>Allow numbers only to be input.</summary>
         public bool NumbersOnly { get; set; } = false;
+        
+        /// <summary>Should the text be highlighted by default on construction so that additional input clears the existing text.</summary>
         public bool HighlightByDefault { get; set; } = true; // TODO: make config option
+        
+        /// <summary>The current text that was input.</summary>
         public string Text { get; private set; }
 
+        /// <summary>The texture used to draw the highlight background.</summary>
         private Texture2D HighlightTexture;
+
+        /// <summary>Is the text currently highlighted.</summary>
         private bool IsTextHighlighted = false;
+
+        /// <summary>Maximum allowed characters.</summary>
         private int CharacterLimit = 0;
+
+        /// <summary>The caret used for text navigation.</summary>
         private Caret Caret;
 
+        /// <summary>Constructs an instance.</summary>
+        /// <param name="characterLimit">The character limit.</param>
+        /// <param name="defaultText">The default text to display.</param>
         public InputTextBox(int characterLimit = 0, string defaultText = "")
         {
             this.CharacterLimit = characterLimit;
@@ -131,6 +90,9 @@ namespace StackSplitX
 
         /* Begin IKeyboardSubscriber implementation */
         #region IKeyboardSubscriber implementation
+
+        /// <summary>Appends the received character to the text if able to. Clears the current text if it's highlighted.</summary>
+        /// <param name="inputChar">The character to append.</param>
         public void RecieveTextInput(char inputChar)
         {
             if (CanAppendChar(inputChar))
@@ -142,6 +104,8 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Appends the received string to the text if able to. Clears the current text if it's highlighted.</summary>
+        /// <param name="text">The string to append.</param>
         public void RecieveTextInput(string text)
         {
             if (IsValidString(text))
@@ -153,6 +117,8 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Callback for when 'command' characters are recieved.</summary>
+        /// <param name="command">The command recieved.</param>
         public void RecieveCommandInput(char command)
         {
             // Cast the ascii value to the readable enum value
@@ -171,6 +137,8 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Handles special input for things like text navigation and manipulation.</summary>
+        /// <param name="key">The key received.</param>
         public void RecieveSpecialInput(Keys key)
         {
             switch (key)
@@ -203,21 +171,26 @@ namespace StackSplitX
         #endregion IKeyboardSubscriber implementation
         /* End IKeyboardSubscriber implementation */
 
+        /// <summary>Invokes the OnSubmit event.</summary>
         private void Submit()
         {
             this.OnSubmit(this);
         }
 
+        /// <summary>Unused.</summary>
         public void Update()
         {
             // TODO: handle highlighting and stuff
         }
 
+        /// <summary>If this textbox contains this point.</summary>
         public bool ContainsPoint(float x, float y)
         {
             return (x >= this.Position.X && y >= this.Position.Y && x <= this.Extent.X && y <= this.Extent.Y);
         }
 
+        /// <summary>Draws the text box.</summary>
+        /// <param name="spriteBatch">Spritebatch to draw with.</param>
         public void Draw(SpriteBatch spriteBatch)
         {
             // Part of the spritesheet containing the texture we want to draw
@@ -252,17 +225,21 @@ namespace StackSplitX
         }
 
         #region TextSelection
+
+        /// <summary>Selects all the text if left control is held down.</summary>
         private void TrySelectAllText()
         {
             if (Utils.IsKeyDown(Keyboard.GetState(), Keys.LeftControl))
                 SelectAllText();
         }
 
+        /// <summary>Highlights all the text.</summary>
         private void SelectAllText()
         {
             this.IsTextHighlighted = true;
         }
 
+        /// <summary>Un-highlights all the text.</summary>
         private void CancelHighlight()
         {
             this.IsTextHighlighted = false;
@@ -270,12 +247,17 @@ namespace StackSplitX
         #endregion TextSelection
 
         #region Text manipulation
+
+        /// <summary>Checks if the character is able to be appended to the text.</summary>
+        /// <param name="c">The character to append.</param>
         private bool CanAppendChar(char c)
         {
             return ((this.CharacterLimit == 0 || this.Text.Length < this.CharacterLimit) &&
                     (!this.NumbersOnly || char.IsDigit(c)));
         }
 
+        /// <summary>Checks if the string is valid.</summary>
+        /// <param name="s">The string to check.</param>
         private bool IsValidString(string s)
         {
             if (s == null || s.Length == 0)
@@ -287,6 +269,8 @@ namespace StackSplitX
             return true;
         }
 
+        /// <summary>Appends a string to the text. String must be valid.</summary>
+        /// <param name="s">The string to append.</param>
         private bool AppendString(string s)
         {
             Debug.Assert(IsValidString(s));
@@ -304,6 +288,8 @@ namespace StackSplitX
             return true;
         }
 
+        /// <summary>Appends a character to the text. Character must be valid.</summary>
+        /// <param name="c">The character to append.</param>
         private void AppendCharacter(char c)
         {
             Debug.Assert(CanAppendChar(c));
@@ -311,6 +297,7 @@ namespace StackSplitX
             this.Caret.Advance(1, this.Text.Length);
         }
 
+        /// <summary>Deletes the character on the left side of the caret.</summary>
         private void RemoveCharacterLeftOfCaret()
         {
             // The caret is always to the right of the character we want to remove.
@@ -321,6 +308,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Deletes the character on the right side of the caret.</summary>
         private void RemoveCharacterRightOfCaret()
         {
             if (this.Caret.Index < this.Text.Length)
@@ -329,6 +317,7 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Clears all the text.</summary>
         private void ClearText()
         {
             this.Text = "";
@@ -336,6 +325,7 @@ namespace StackSplitX
             this.IsTextHighlighted = false;
         }
 
+        /// <summary>Clears all the text if it's highlighted.</summary>
         private void ClearTextIfHighlighted()
         {
             if (this.IsTextHighlighted)

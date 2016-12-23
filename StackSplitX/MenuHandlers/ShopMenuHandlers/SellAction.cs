@@ -10,6 +10,11 @@ namespace StackSplitX.MenuHandlers
 {
     public class SellAction : ShopAction
     {
+        /// <summary>Constructs an instance.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="monitor">Monitor for logging.</param>
+        /// <param name="menu">The native shop menu.</param>
+        /// <param name="item">The item to buy.</param>
         public SellAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, Item item)
             : base(reflection, monitor, menu, item)
         {
@@ -17,11 +22,15 @@ namespace StackSplitX.MenuHandlers
             this.Amount = (int)Math.Ceiling(this.ClickedItem.Stack / 2.0);
         }
 
+        /// <summary>Verifies the conditions to perform te action.</summary>
         public override bool CanPerformAction()
         {
             return (this.NativeShopMenu.highlightItemToSell(this.ClickedItem) && this.ClickedItem.Stack > 1);
         }
 
+        /// <summary>Does the action.</summary>
+        /// <param name="amount">Number of items.</param>
+        /// <param name="clickLocation">Where the player clicked.</param>
         public override void PerformAction(int amount, Point clickLocation)
         {
             amount = Math.Min(amount, this.ClickedItem.Stack);
@@ -67,6 +76,10 @@ namespace StackSplitX.MenuHandlers
         }
 
         // TODO: verify this is correct and Item.sellToShopPrice doesn't do the same thing
+        /// <summary>Calculates the sale price of an item based on the algorithms used in the game source.</summary>
+        /// <param name="item">Item to get the price for.</param>
+        /// <param name="amount">Number being sold.</param>
+        /// <returns>The sale price of the item * amount.</returns>
         private int CalculateSalePrice(Item item, int amount)
         {
             // Formula from ShopMenu.cs

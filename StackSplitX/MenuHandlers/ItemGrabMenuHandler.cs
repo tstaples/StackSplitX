@@ -9,27 +9,53 @@ namespace StackSplitX.MenuHandlers
 {
     public class ItemGrabMenuHandler : BaseMenuHandler<ItemGrabMenu>
     {
+        /// <summary>Native player inventory menu.</summary>
         private InventoryMenu PlayerInventoryMenu = null;
+        
+        /// <summary>Native shop inventory menu.</summary>
         private InventoryMenu ItemsToGrabMenu = null;
+        
+        /// <summary>If the callbacks have been hooked yet so we don't do it unnecessarily.</summary>
         private bool CallbacksHooked = false;
+
+        /// <summary>Native item select callback.</summary>
         private ItemGrabMenu.behaviorOnItemSelect OriginalItemSelectCallback;
+
+        /// <summary>Native item grab callback.</summary>
         private ItemGrabMenu.behaviorOnItemSelect OriginalItemGrabCallback;
+
+        /// <summary>The item being hovered when the split menu is opened.</summary>
         private Item HoverItem = null;
+
+        /// <summary>The amount we wish to buy/sell.</summary>
         private int StackAmount = 0;
+
+        /// <summary>The total number of items in the hovered stack.</summary>
         private int TotalItems = 0;
+
+        /// <summary>Where the player clicked when the split menu was opened.</summary>
         private Point ClickItemLocation;
 
+        /// <summary>The currently held item.</summary>
+        private Item HeldItem => this.NativeMenu.heldItem;
+
+        /// <summary>Constructs and instance.</summary>
+        /// <param name="helper">Mod helper instance.</param>
+        /// <param name="monitor">Monitor instance.</param>
         public ItemGrabMenuHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
         }
 
+        /// <summary>Allows derived handlers to provide additional checks before opening the split menu.</summary>
+        /// <returns>True if it can be opened.</returns>
         protected override bool CanOpenSplitMenu()
         {
             bool canOpen = this.NativeMenu.allowRightClick;
             return (canOpen && base.CanOpenSplitMenu());
         }
 
+        /// <summary>Tells the handler to close the split menu.</summary>
         public override void CloseSplitMenu()
         {
             base.CloseSplitMenu();
@@ -38,6 +64,8 @@ namespace StackSplitX.MenuHandlers
                 this.Monitor.Log("[CloseSplitMenu] Callbacks shouldn't be hooked", LogLevel.Error);
         }
 
+        /// <summary>Called when the current handler loses focus when the split menu is open, allowing it to cancel the operation or run the default behaviour.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
         protected override EInputHandled CancelMove()
         {
             if (this.HoverItem != null)
@@ -60,6 +88,8 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.NotHandled;
         }
 
+        /// <summary>Main event that derived handlers use to setup necessary hooks and other things needed to take over how the stack is split.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
         protected override EInputHandled OpenSplitMenu()
         {
             try
@@ -98,6 +128,8 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.Consumed;
         }
 
+        /// <summary>Callback given to the split menu that is invoked when a value is submitted.</summary>
+        /// <param name="s">The user input.</param>
         protected override void OnStackAmountReceived(string s)
         {
             // Store amount
@@ -119,26 +151,33 @@ namespace StackSplitX.MenuHandlers
             base.OnStackAmountReceived(s);
         }
 
+        /// <summary>Callback override for when an item in the inventory is selected.</summary>
+        /// <param name="item">Item that was selected.</param>
+        /// <param name="who">The player that selected it.</param>
         private void OnItemSelect(Item item, Farmer who)
         {
-            //this.Monitor.Log("OnItemSelect", LogLevel.Trace);
-
             MoveItems(item, who, this.PlayerInventoryMenu, this.OriginalItemSelectCallback);
         }
 
+        /// <summary>Callback override for when an item in the shop is selected.</summary>
+        /// <param name="item">Item that was selected.</param>
+        /// <param name="who">The player that selected it.</param>
         private void OnItemGrab(Item item, Farmer who)
         {
-            //this.Monitor.Log("OnItemGrab", LogLevel.Trace);
-
             MoveItems(item, who, this.ItemsToGrabMenu, this.OriginalItemGrabCallback);
         }
 
+        /// <summary>Updates the number of items being held by the player based on what was input to the split menu.</summary>
+        /// <param name="item">The selected item.</param>
+        /// <param name="who">The player that selected the items.</param>
+        /// <param name="inventory">Either the player inventory or the shop inventory.</param>
+        /// <param name="callback">The native callback to invoke to continue with the regular behavior after we've modified the stack.</param>
         private void MoveItems(Item item, Farmer who, InventoryMenu inventory, ItemGrabMenu.behaviorOnItemSelect callback)
         {
             Debug.Assert(this.StackAmount > 0);
 
             // Get the held item now that it's been set by the native receiveRightClick call
-            var heldItem = GetHeldItem();
+            var heldItem = this.HeldItem;
             if (heldItem != null)
             {
                 // update held item stack and item stack
@@ -166,6 +205,7 @@ namespace StackSplitX.MenuHandlers
             callback?.Invoke(item, who);
         }
 
+        /// <summary>Cancels the operation so no items are sold or bought.</summary>
         private void RevertItems()
         {
             if (this.HoverItem != null && this.TotalItems > 0)
@@ -177,6 +217,8 @@ namespace StackSplitX.MenuHandlers
             }
         }
 
+        /// <summary>Replaces the native shop callbacks with our own so we can intercept the operation to modify the amount.</summary>
+        /// <returns>If it was hooked successfully.</returns>
         private bool HookCallbacks()
         {
             if (this.CallbacksHooked)
@@ -204,6 +246,7 @@ namespace StackSplitX.MenuHandlers
             return true;
         }
 
+        /// <summary>Sets the callbacks back to the native ones.</summary>
         private void RestoreNativeCallbacks()
         {
             if (!this.CallbacksHooked)
@@ -223,11 +266,6 @@ namespace StackSplitX.MenuHandlers
             {
                 this.Monitor.Log("Failed to restore native callbacks");
             }
-        }
-
-        private Item GetHeldItem()
-        {
-            return this.NativeMenu.heldItem;
         }
     }
 }

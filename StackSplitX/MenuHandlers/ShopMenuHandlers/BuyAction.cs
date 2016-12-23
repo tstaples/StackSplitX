@@ -10,9 +10,14 @@ namespace StackSplitX.MenuHandlers
 {
     class BuyAction : ShopAction
     {
-        // Default amount when shift+right clicking
+        /// <summary>Default amount when shift+right clicking</summary>
         private const int DefaultShopStackAmount = 5;
 
+        /// <summary>Constructs an instance.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="monitor">Monitor for logging.</param>
+        /// <param name="menu">The native shop menu.</param>
+        /// <param name="item">The item to buy.</param>
         public BuyAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, Item item)
             : base(reflection, monitor, menu, item)
         {
@@ -20,6 +25,7 @@ namespace StackSplitX.MenuHandlers
             this.Amount = DefaultShopStackAmount;
         }
 
+        /// <summary>Verifies the conditions to perform te action.</summary>
         public override bool CanPerformAction()
         {
             var heldItem = this.Reflection.GetPrivateValue<Item>(this.NativeShopMenu, "heldItem");
@@ -31,6 +37,9 @@ namespace StackSplitX.MenuHandlers
                     currentMonies >= this.ClickedItem.salePrice()); // Can afford
         }
 
+        /// <summary>Does the action.</summary>
+        /// <param name="amount">Number of items.</param>
+        /// <param name="clickLocation">Where the player clicked.</param>
         public override void PerformAction(int amount, Point clickLocation)
         {
             var priceAndStockField = this.Reflection.GetPrivateField<Dictionary<Item, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
@@ -68,6 +77,11 @@ namespace StackSplitX.MenuHandlers
             }
         }
 
+        /// <summary>Helper method getting which item in the shop was clicked.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="shopMenu">Native shop menu.</param>
+        /// <param name="p">Mouse location.</param>
+        /// <returns>The clicked item or null if none was clicked.</returns>
         public static Item GetClickedShopItem(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
             var itemsForSale = reflection.GetPrivateValue<List<Item>>(shopMenu, "forSale");
@@ -76,6 +90,11 @@ namespace StackSplitX.MenuHandlers
             return index >= 0 ? itemsForSale[index] : null;
         }
 
+        /// <summary>Gets the index of the clicked shop item. This index corresponds to the list of buttons and list of items.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="shopMenu">Native shop menu.</param>
+        /// <param name="p">Mouse location.</param>
+        /// <returns>The clicked item or null if none was clicked.</returns>
         public static int GetClickedItemIndex(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
             int currentItemIndex = reflection.GetPrivateValue<int>(shopMenu, "currentItemIndex");

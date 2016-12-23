@@ -38,10 +38,15 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Currently hovered item in the inventory.</summary>
         private Item HoveredItem;
 
+        /// <summary>Reflection helper.</summary>
         private readonly IReflectionHelper Reflection;
+        
+        /// <summary>Monitor for logging.</summary>
         private readonly IMonitor Monitor;
 
-
+        /// <summary>Constructs and instance.</summary>
+        /// <param name="helper">Mod helper instance.</param>
+        /// <param name="monitor">Monitor instance.</param>
         public InventoryHandler(IReflectionHelper reflection, IMonitor monitor)
         {
             this.Reflection = reflection;

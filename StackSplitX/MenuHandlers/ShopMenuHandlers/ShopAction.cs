@@ -8,14 +8,28 @@ namespace StackSplitX.MenuHandlers
 {
     public abstract class ShopAction : IShopAction
     {
-        protected IReflectionHelper Reflection { get; private set; }
-        protected IMonitor Monitor { get; private set; }
+        /// <summary>Reflection helper.</summary>
+        protected readonly IReflectionHelper Reflection;
+        
+        /// <summary>Monitor for logging.</summary>
+        protected readonly IMonitor Monitor;
+
+        /// <summary>Native shope menu.</summary>
         protected ShopMenu NativeShopMenu { get; private set; }
+
+        /// <summary>Native inventory menu.</summary>
         protected InventoryMenu Inventory { get; private set; }
+
+        /// <summary>Currency type of the shop.</summary>
         protected int ShopCurrencyType { get; private set; }
+
+        /// <summary>The item to be bought/sold.</summary>
         protected Item ClickedItem = null;
+
+        /// <summary>The number of items in the transaction.</summary>
         protected int Amount { get; set; } = 0;
 
+        /// <summary>The number of items in the transaction.</summary>
         public int StackAmount => this.Amount;
 
 

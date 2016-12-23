@@ -11,8 +11,11 @@ using Microsoft.Xna.Framework;
 
 namespace StackSplitX
 {
-    public class StackSplitMenu //: NamingMenu
+    /// <summary>Manages the UI for inputting the stack amount.</summary>
+    public class StackSplitMenu
     {
+        /// <summary>Delegate declaration for when text is submitted.</summary>
+        /// <param name="input">The submitted text.</param>
         public delegate void TextSubmittedDelegate(string input);
 
         /// <summary>The amount being currently held by the player.</summary>
@@ -21,10 +24,18 @@ namespace StackSplitX
         /// <summary>The dialogue title.</summary>
         public string Title { get; set; } = "Select Amount";
 
+        /// <summary>The input text box.</summary>
         private InputTextBox InputTextBox;
+
+        /// <summary>Callback to execute when the text is submitted.</summary>
         private TextSubmittedDelegate OnTextSubmitted;
+
+        /// <summary>The OK button.</summary>
         private ClickableTextureComponent OKButton;
 
+        /// <summary>Constructs an intance.</summary>
+        /// <param name="textSubmittedCallback">The callback for when the text is submitted.</param>
+        /// <param name="heldStackAmount">The default stack amount to set the text to.</param>
         public StackSplitMenu(TextSubmittedDelegate textSubmittedCallback, int heldStackAmount)
         {
             this.OnTextSubmitted = textSubmittedCallback;
@@ -53,6 +64,8 @@ namespace StackSplitX
                 false);
         }
 
+        /// <summary>Draws the interface.</summary>
+        /// <param name="b">Spritebatch to draw with.</param>
         public void draw(SpriteBatch b)
         {
 			//SpriteText.drawStringWithScrollCenteredAt(b, this.Title, Game1.viewport.Width / 2, Game1.viewport.Height / 2 - Game1.tileSize * 2, "", 1f, -1, 0, 0.88f, false);
@@ -66,6 +79,9 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>Handles left clicks to check if the OK button was clicked.</summary>
+        /// <param name="x">Mouse x position.</param>
+        /// <param name="y">Mouse y position.</param>
         public void ReceiveLeftClick(int x, int y)
         {
             if (this.OKButton.containsPoint(x, y))
@@ -75,16 +91,22 @@ namespace StackSplitX
             }
         }
 
+        /// <summary>If this point lies in either the input box or OK button.</summary>
+        /// <param name="x">X position.</param>
+        /// <param name="y">Y position.</param>
         public bool ContainsPoint(int x, int y)
         {
             return (this.OKButton.containsPoint(x, y) || this.InputTextBox.ContainsPoint(x, y));
         }
 
+        /// <summary>Updates the input textbox.</summary>
         public void Update()
         {
             this.InputTextBox.Update();
         }
 
+        /// <summary>Callback to the input textbox's submit event. Fires the callback passed to this class.</summary>
+        /// <param name="text">The submitted text.</param>
         private void Submit(string text)
         {
             Debug.Assert(this.OnTextSubmitted != null);

@@ -10,7 +10,6 @@ namespace StackSplitX.MenuHandlers
     public interface IShopAction
     {
         /// <summary>Gets the size of the stack the action is acting on.</summary>
-        //int GetStackAmount();
         int StackAmount { get; }
 
         /// <summary>Verifies the conditions to perform te action.</summary>
