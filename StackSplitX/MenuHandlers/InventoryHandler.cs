@@ -144,6 +144,9 @@ namespace StackSplitX.MenuHandlers
 
             // Update the native fields
             this.HeldItemField.SetValue(heldItem);
+            
+            // Null it out now that we're done with this operation
+            this.HoveredItem = null;
         }
 
         /// <summary>Runs the default shift+right-click behavior on the selected item.</summary>
@@ -153,6 +156,9 @@ namespace StackSplitX.MenuHandlers
             {
                 // Split with the default amount to simulate the default behaviour
                 SplitSelectedItem(GetDefaultSplitStackAmount());
+
+                // Null it out now that we're done with this operation
+                this.HoveredItem = null;
             }
         }
 
