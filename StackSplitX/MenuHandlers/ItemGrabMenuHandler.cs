@@ -33,11 +33,9 @@ namespace StackSplitX.MenuHandlers
         /// <summary>The total number of items in the hovered stack.</summary>
         private int TotalItems = 0;
 
-        /// <summary>Where the player clicked when the split menu was opened.</summary>
-        private Point ClickItemLocation;
-
         /// <summary>The currently held item.</summary>
         private Item HeldItem => this.NativeMenu.heldItem;
+
 
         /// <summary>Constructs and instance.</summary>
         /// <param name="helper">Mod helper instance.</param>
@@ -112,10 +110,6 @@ namespace StackSplitX.MenuHandlers
                 //this.Monitor.Log("No hover item", LogLevel.Trace);
                 return EInputHandled.NotHandled;
             }
-
-            // Store where the cursor was in case it moves before submitting the split menu
-            // as proceeding parts will use the now moved mouse location.
-            this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
 
             this.TotalItems = this.HoverItem.Stack;
             this.StackAmount = (int)Math.Ceiling(this.TotalItems / 2.0); // default at half

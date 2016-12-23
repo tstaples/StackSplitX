@@ -69,5 +69,16 @@ namespace StackSplitX.MenuHandlers
         /// <param name="amount">Number of items.</param>
         /// <param name="clickLocation">Where the player clicked.</param>
         public abstract void PerformAction(int amount, Point clickLocation);
+
+        /// <summary>Creates an instance of the action.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="monitor">Monitor for logging.</param>
+        /// <param name="shopMenu">Native shop menu.</param>
+        /// <param name="mouse">Mouse position.</param>
+        /// <returns>The instance or null if no valid item was selected.</returns>
+        public static ShopAction Create(IReflectionHelper reflection, IMonitor monitor, ShopMenu shopMenu, Point mouse)
+        {
+            return null;
+        }
     }
 }

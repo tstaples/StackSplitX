@@ -10,9 +10,6 @@ namespace StackSplitX.MenuHandlers
 {
     public class ShopMenuHandler : BaseMenuHandler<ShopMenu>
     {
-        /// <summary>Where the player clicked when the split menu was opened.</summary>
-        private Point ClickItemLocation;
-
         /// <summary>The shop action for the current operation.</summary>
         private IShopAction CurrentShopAction = null;
 
@@ -22,6 +19,48 @@ namespace StackSplitX.MenuHandlers
         public ShopMenuHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
+        }
+
+        /// <summary>Notifies the handler that it's native menu has been opened.</summary>
+        /// <param name="menu">The menu that was opened.</param>
+        public override void Open(IClickableMenu menu)
+        {
+            base.Open(menu);
+
+            var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
+            var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "hoveredItem");
+            var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "heldItem");
+
+            this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+        }
+
+        /// <summary>Alternative of OpenSplitMenu which is invoked when the generic inventory handler is clicked.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
+        protected override EInputHandled InventoryClicked()
+        {
+            this.CurrentShopAction = SellAction.Create(this.Helper.Reflection, this.Monitor, this.NativeMenu, this.ClickItemLocation);
+            return TryOpenSplitMenu(this.CurrentShopAction);
+        }
+
+        /// <summary>Main event that derived handlers use to setup necessary hooks and other things needed to take over how the stack is split.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
+        protected override EInputHandled OpenSplitMenu()
+        {
+            this.CurrentShopAction = BuyAction.Create(this.Helper.Reflection, this.Monitor, this.NativeMenu, this.ClickItemLocation);
+            return TryOpenSplitMenu(this.CurrentShopAction);
+        }
+
+        /// <summary>Callback given to the split menu that is invoked when a value is submitted.</summary>
+        /// <param name="s">The user input.</param>
+        protected override void OnStackAmountReceived(string s)
+        {
+            int amount = 0;
+            if (int.TryParse(s, out amount))
+            {
+                if (amount > 0) // Canceled if 0
+                    this.CurrentShopAction.PerformAction(amount, this.ClickItemLocation);
+            }
+            base.OnStackAmountReceived(s);
         }
 
         /// <summary>How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)</summary>
@@ -41,54 +80,16 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.NotHandled;
         }
 
-        /// <summary>Main event that derived handlers use to setup necessary hooks and other things needed to take over how the stack is split.</summary>
-        /// <returns>If the input was handled or consumed.</returns>
-        protected override EInputHandled OpenSplitMenu()
+        /// <summary>Checks if the action can be performed and creates the split menu if it can.</summary>
+        /// <param name="action">The action to perform.</param>
+        private EInputHandled TryOpenSplitMenu(IShopAction action)
         {
-            // Check if it was the shop or inventory that was clicked and initialize the appropriate values
-            this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
-            this.CurrentShopAction = GetShopAction(this.ClickItemLocation);
-            if (this.CurrentShopAction == null || !this.CurrentShopAction.CanPerformAction())
-                return EInputHandled.NotHandled;
-
-            this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.CurrentShopAction.StackAmount);
-
-            return EInputHandled.Consumed;
-        }
-
-        /// <summary>Callback given to the split menu that is invoked when a value is submitted.</summary>
-        /// <param name="s">The user input.</param>
-        protected override void OnStackAmountReceived(string s)
-        {
-            int amount = 0;
-            if (int.TryParse(s, out amount))
+            if (action?.CanPerformAction() == true)
             {
-                if (amount > 0)
-                {
-                    this.CurrentShopAction.PerformAction(amount, this.ClickItemLocation);
-                }
+                this.SplitMenu = new StackSplitMenu(OnStackAmountReceived, this.CurrentShopAction.StackAmount);
+                return EInputHandled.Consumed;
             }
-
-            base.OnStackAmountReceived(s);
-        }
-
-        // TODO: use inventoryclicked event to make this cleaner.
-        /// <summary>Determines which shop action to create based on what was selected.</summary>
-        /// <param name="p">The click location.</param>
-        /// <returns>The shop action instance.</returns>
-        private IShopAction GetShopAction(Point p)
-        {
-            // Check if we selected an item in the inventory
-            var inventory = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
-            var item = inventory.getItemAt(this.ClickItemLocation.X, this.ClickItemLocation.Y);
-            if (item != null)
-                return new SellAction(this.Helper.Reflection, this.Monitor, this.NativeMenu, item);
-
-            // Check if we clicked a shop item
-            item = BuyAction.GetClickedShopItem(this.Helper.Reflection, this.NativeMenu, this.ClickItemLocation);
-            if (item != null)
-                return new BuyAction(this.Helper.Reflection, this.Monitor, this.NativeMenu, item);
-            return null;
+            return EInputHandled.NotHandled;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
@@ -28,8 +29,12 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Does this menu have an inventory section.</summary>
         protected bool HasInventory { get; set; } = true;
 
+        /// <summary>Where the player clicked when the split menu was opened.</summary>
+        protected Point ClickItemLocation { get; private set; }
+
         /// <summary>Tracks if the menu is currently open.</summary>
         private bool IsMenuOpen = false;
+
 
         /// <summary>Constructs and instance.</summary>
         /// <param name="helper">Mod helper instance.</param>
@@ -112,7 +117,11 @@ namespace StackSplitX.MenuHandlers
                         CancelMove();
                     }
 
+                    // Store where the player clicked to pass to the native code after the split menu has been submitted so it remains the same even if the mouse moved.
+                    this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
+
                     // Notify the handler the inventory was clicked.
+                    this.Monitor.Log(this.HasInventory && !this.Inventory.Initialized, "Handler has inventory but inventory isn't initialized.", LogLevel.Trace);
                     if (this.HasInventory && this.Inventory.Initialized && this.Inventory.WasClicked(Game1.getMouseX(), Game1.getMouseY()))
                     {
                         return InventoryClicked();

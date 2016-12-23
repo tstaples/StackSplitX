@@ -42,6 +42,7 @@ namespace StackSplitX.MenuHandlers
         /// <param name="clickLocation">Where the player clicked.</param>
         public override void PerformAction(int amount, Point clickLocation)
         {
+            var heldItem = this.Reflection.GetPrivateValue<Item>(this.NativeShopMenu, "heldItem");
             var priceAndStockField = this.Reflection.GetPrivateField<Dictionary<Item, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
             var priceAndStockMap = priceAndStockField.GetValue();
             Debug.Assert(priceAndStockMap.ContainsKey(this.ClickedItem));
@@ -52,12 +53,15 @@ namespace StackSplitX.MenuHandlers
             int currentMonies = ShopMenu.getPlayerCurrencyAmount(Game1.player, this.ShopCurrencyType);
             amount = Math.Min(Math.Min(amount, currentMonies / itemPrice), Math.Min(numInStock, this.ClickedItem.maximumStackSize()));
 
+            // If we couldn't grab all that we wanted then only subtract the amount we were able to grab
+            int numHeld = heldItem?.Stack ?? 0;
+            int overflow = Math.Max((numHeld + amount) - this.ClickedItem.maximumStackSize(), 0);
+            amount -= overflow;
+
             this.Monitor.Log($"Attempting to purchase {amount} of {this.ClickedItem.Name} for {itemPrice * amount}", LogLevel.Trace);
 
             if (amount <= 0)
                 return;
-
-            var heldItem = this.Reflection.GetPrivateValue<Item>(this.NativeShopMenu, "heldItem");
 
             // Try to purchase the item - method returns true if it should be removed from the shop since there's no more.
             var purchaseMethodInfo = this.Reflection.GetPrivateMethod(this.NativeShopMenu, "tryToPurchaseItem");
@@ -101,6 +105,18 @@ namespace StackSplitX.MenuHandlers
             var forSaleButtons = reflection.GetPrivateValue<List<ClickableComponent>>(shopMenu, "forSaleButtons");
             int saleButtonIndex = forSaleButtons.FindIndex(button => button.containsPoint(p.X, p.Y));
             return saleButtonIndex > -1 ? currentItemIndex + saleButtonIndex : -1;
+        }
+
+        /// <summary>Creates an instance of the action.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="monitor">Monitor for logging.</param>
+        /// <param name="shopMenu">Native shop menu.</param>
+        /// <param name="mouse">Mouse position.</param>
+        /// <returns>The instance or null if no valid item was selected.</returns>
+        public new static ShopAction Create(IReflectionHelper reflection, IMonitor monitor, ShopMenu shopMenu, Point mouse)
+        {
+            var item = BuyAction.GetClickedShopItem(reflection, shopMenu, mouse);
+            return item != null ? new BuyAction(reflection, monitor, shopMenu, item) : null;
         }
     }
 }

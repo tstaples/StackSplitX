@@ -98,5 +98,18 @@ namespace StackSplitX.MenuHandlers
             // Invert so we give the player money instead (shitty but it's what the game does).
             return -price;
         }
+
+        /// <summary>Creates an instance of the action.</summary>
+        /// <param name="reflection">Reflection helper.</param>
+        /// <param name="monitor">Monitor for logging.</param>
+        /// <param name="shopMenu">Native shop menu.</param>
+        /// <param name="mouse">Mouse position.</param>
+        /// <returns>The instance or null if no valid item was selected.</returns>
+        public new static ShopAction Create(IReflectionHelper reflection, IMonitor monitor, ShopMenu shopMenu, Point mouse)
+        {
+            var inventory = reflection.GetPrivateValue<InventoryMenu>(shopMenu, "inventory");
+            var item = inventory.getItemAt(mouse.X, mouse.Y);
+            return item != null ? new SellAction(reflection, monitor, shopMenu, item) : null;
+        }
     }
 }
