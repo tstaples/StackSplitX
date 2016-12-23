@@ -86,6 +86,7 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Tells the handler to close the split menu.</summary>
         public virtual void CloseSplitMenu()
         {
+            this.SplitMenu?.Close();
             this.SplitMenu = null;
         }
 

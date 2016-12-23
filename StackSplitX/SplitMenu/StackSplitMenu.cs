@@ -64,6 +64,14 @@ namespace StackSplitX
                 false);
         }
 
+        /// <summary>Closes the split menu so it stops receiving input.</summary>
+        public void Close()
+        {
+            // Remove from the subscriber so it stops getting input.
+            this.InputTextBox = null;
+            Game1.keyboardDispatcher.Subscriber = null;
+        }
+
         /// <summary>Draws the interface.</summary>
         /// <param name="b">Spritebatch to draw with.</param>
         public void draw(SpriteBatch b)

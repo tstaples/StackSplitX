@@ -15,6 +15,13 @@ namespace StackSplitX
             if (condition)
                 monitor.Log(message, level);
         }
+
+        public static void DebugLog(this IMonitor monitor, string message, LogLevel level = LogLevel.Trace)
+        {
+        #if DEBUG
+            monitor.Log(message, level);
+        #endif // DEBUG
+        }
     }
 
     public class Utils

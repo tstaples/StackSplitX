@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
 using StardewModdingAPI;
+using StardewModdingAPI.Inheritance;
 using StardewModdingAPI.Events;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
@@ -26,13 +27,16 @@ namespace StackSplitX
         /// <summary>Used to avoid resize events sent to menu changed.</summary>
         private bool WasResizeEvent = false;
 
+        /// <summary>Tracks what tick a resize event occurs on so we can resize the current handler next frame. -1 means no resize event.</summary>
+        private int TickResizedOn = -1;
+
         /// <summary>Mod entry point.</summary>
         /// <param name="helper">Mod helper.</param>
         public override void Entry(IModHelper helper)
         {
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
-            GraphicsEvents.Resize += (sender, e) => { WasResizeEvent = true; };
+            GraphicsEvents.Resize += OnResize;
             GameEvents.UpdateTick += OnUpdate;
 
             this.MenuHandlers = new Dictionary<Type, IMenuHandler>()
@@ -69,6 +73,13 @@ namespace StackSplitX
 
                 this.IsSubscribed = false;
             }
+        }
+
+        /// <summary>Callback to the resize event. Sets flags to notify handler to resize next tick as the menu isn't always recreated.</summary>
+        private void OnResize(object sender, EventArgs e)
+        {
+            this.WasResizeEvent = true;
+            this.TickResizedOn = SGame.Instance.CurrentUpdateTick;
         }
 
         /// <summary>Callback for the menu closed event; closes the current handler and unsubscribes from the events.</summary>
@@ -155,6 +166,16 @@ namespace StackSplitX
         /// <summary>Callback for the UpdateTick event. Updates the current handler.</summary>
         private void OnUpdate(object sender, EventArgs e)
         {
+            // If TickResizedOn isn't -1 then there was a resize event, so do the resize next tick.
+            // We need to do it this way rather than where we ignore resize in menu changed since not all menus are recreated on resize,
+            // and during the actual resize event the new menu will not have been created yet so we need to wait.
+            if (this.TickResizedOn > -1 && this.TickResizedOn != SGame.Instance.CurrentUpdateTick)
+            {
+                this.TickResizedOn = -1;
+                this.CurrentMenuHandler?.Close();
+                this.CurrentMenuHandler?.Open(Game1.activeClickableMenu);
+            }
+
             this.CurrentMenuHandler?.Update();
         }
 
