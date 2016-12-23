@@ -12,6 +12,9 @@ namespace StackSplitX.MenuHandlers
         /// <summary>The inventory handler.</summary>
         protected InventoryHandler Inventory = null;
 
+        /// <summary>Does this menu have an inventory section.</summary>
+        protected bool HasInventory { get; set; } = true;
+
         /// <summary>The native menu that owns all the pages.</summary>
         protected IClickableMenu NativeMenu { get; private set; }
         
@@ -42,6 +45,9 @@ namespace StackSplitX.MenuHandlers
             this.NativeMenu = menu;
             this.MenuPage = page as TPageType;
             this.Inventory = inventory;
+
+            if (this.HasInventory)
+                InitInventory();
         }
 
         /// <summary>Tell the handler to close.</summary>
@@ -50,6 +56,23 @@ namespace StackSplitX.MenuHandlers
             this.NativeMenu = null;
             this.MenuPage = null;
             this.Inventory = null;
+        }
+
+        /// <summary>Initializes the inventory using the most common variable names.</summary>
+        public virtual void InitInventory()
+        {
+            try
+            {
+                var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
+                var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoveredItem");
+                var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
+
+                this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+            }
+            catch (Exception e)
+            {
+                this.Monitor.Log($"Failed to initialize the inventory handler: {e}", LogLevel.Error);
+            }
         }
 
         /// <summary>Tells the handler that the inventory was shift-clicked.</summary>

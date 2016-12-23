@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
+using System;
 using System.Diagnostics;
 
 namespace StackSplitX.MenuHandlers
@@ -60,6 +61,9 @@ namespace StackSplitX.MenuHandlers
             Debug.Assert(menu is TMenuType);
             this.NativeMenu = menu as TMenuType;
             this.IsMenuOpen = true;
+
+            if (this.HasInventory)
+                InitInventory();
         }
 
         /// <summary>Notifies the handler that it's native menu was closed.</summary>
@@ -228,6 +232,26 @@ namespace StackSplitX.MenuHandlers
         protected virtual void OnStackAmountReceived(string s)
         {
             CloseSplitMenu();
+        }
+
+        /// <summary>Initializes the inventory using the most common variable names.</summary>
+        protected virtual void InitInventory()
+        {
+            if (!this.HasInventory)
+                return;
+
+            try
+            {
+                var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
+                var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "hoveredItem");
+                var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "heldItem");
+
+                this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+            }
+            catch (Exception e)
+            {
+                this.Monitor.Log($"Failed to initialize the inventory handler: {e}", LogLevel.Error);
+            }
         }
 
         #region Input Util

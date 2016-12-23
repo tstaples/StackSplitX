@@ -43,6 +43,8 @@ namespace StackSplitX.MenuHandlers
         public ItemGrabMenuHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
+            // We're handling the inventory in such a way that we don't need the generic handler.
+            this.HasInventory = false;
         }
 
         /// <summary>Allows derived handlers to provide additional checks before opening the split menu.</summary>

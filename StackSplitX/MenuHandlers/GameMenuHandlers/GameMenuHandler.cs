@@ -52,7 +52,7 @@ namespace StackSplitX.MenuHandlers
 
             if (!ChangeTabs(this.CurrentTab))
             {
-                this.Monitor.Log($"Could not change to tab {this.CurrentTab}", LogLevel.Trace);
+                this.Monitor.DebugLog($"Could not change to tab {this.CurrentTab}", LogLevel.Warn);
             }
         }
 
@@ -61,6 +61,12 @@ namespace StackSplitX.MenuHandlers
         {
             base.Close();
             CloseCurrentHandler();
+        }
+
+        /// <summary>Initializes the inventory using the most common variable names.</summary>
+        protected override void InitInventory()
+        {
+            // Do nothing; let the PageHandler init the inventory in Open.
         }
 
         /// <summary>Called when the current handler loses focus when the split menu is open, allowing it to cancel the operation or run the default behaviour.</summary>

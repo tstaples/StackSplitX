@@ -1,4 +1,5 @@
 ﻿using StardewModdingAPI;
+using StardewValley;
 using StardewValley.Menus;
 using System;
 
@@ -66,6 +67,12 @@ namespace StackSplitX.MenuHandlers
                 this.CraftingPageHandler.OnStackAmountEntered(amount);
             }
             base.OnStackAmountReceived(s);
+        }
+
+        /// <summary>Initializes the inventory using the most common variable names.</summary>
+        protected override void InitInventory()
+        {
+            // Do nothing; CraftingPageHandler.Open will init the inventory.
         }
     }
 }

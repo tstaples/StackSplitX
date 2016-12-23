@@ -22,14 +22,10 @@ namespace StackSplitX.MenuHandlers
         {
         }
 
-        /// <summary>Notifies the page handler that it's corresponding menu has been opened.</summary>
-        /// <param name="menu">The native menu owning all the pages.</param>
-        /// <param name="page">The specific page this handler is for.</param>
-        /// <param name="inventory">The inventory handler.</param>
-        public override void Open(IClickableMenu menu, IClickableMenu page, InventoryHandler inventory)
+        /// <summary>Initializes the inventory using the most common variable names.</summary>
+        public override void InitInventory()
         {
-            base.Open(menu, page, inventory);
-
+            // We need to do this explicitly because the crafting page uses a different variable name for hover item.
             var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
             var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoverItem");
             var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");

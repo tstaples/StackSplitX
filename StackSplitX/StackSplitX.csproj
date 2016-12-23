@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MenuHandlers\JunimoNoteMenuHandler.cs" />
     <Compile Include="SplitMenu\Caret.cs" />
     <Compile Include="SplitMenu\InputTextBox.cs" />
     <Compile Include="MenuHandlers\BaseMenuHandler.cs" />

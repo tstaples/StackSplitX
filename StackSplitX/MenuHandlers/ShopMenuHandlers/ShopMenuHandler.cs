@@ -21,19 +21,6 @@ namespace StackSplitX.MenuHandlers
         {
         }
 
-        /// <summary>Notifies the handler that it's native menu has been opened.</summary>
-        /// <param name="menu">The menu that was opened.</param>
-        public override void Open(IClickableMenu menu)
-        {
-            base.Open(menu);
-
-            var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
-            var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "hoveredItem");
-            var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "heldItem");
-
-            this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
-        }
-
         /// <summary>Alternative of OpenSplitMenu which is invoked when the generic inventory handler is clicked.</summary>
         /// <returns>If the input was handled or consumed.</returns>
         protected override EInputHandled InventoryClicked()
