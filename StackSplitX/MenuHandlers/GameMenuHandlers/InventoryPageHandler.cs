@@ -10,45 +10,27 @@ namespace StackSplitX.MenuHandlers
 {
     public class InventoryPageHandler : GameMenuPageHandler<InventoryPage>
     {
-        private InventoryHandler Inventory = null;
-
+        /// <summary>Constructs and instance.</summary>
+        /// <param name="helper">Mod helper instance.</param>
+        /// <param name="monitor">Monitor instance.</param>
         public InventoryPageHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
-            this.Inventory = new InventoryHandler(helper.Reflection, monitor);
         }
 
-        public override EInputHandled OpenSplitMenu(out int stackAmount)
+        /// <summary>Notifies the page handler that it's corresponding menu has been opened.</summary>
+        /// <param name="menu">The native menu owning all the pages.</param>
+        /// <param name="page">The specific page this handler is for.</param>
+        /// <param name="inventory">The inventory handler.</param>
+        public override void Open(IClickableMenu menu, IClickableMenu page, InventoryHandler inventory)
         {
-            stackAmount = 0;
+            base.Open(menu, page, inventory);
 
             var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
             var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoveredItem");
             var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
 
             this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
-            if (this.Inventory.WasClicked(Game1.getMouseX(), Game1.getMouseY()))
-            {
-                this.Inventory.SelectItem(Game1.getMouseX(), Game1.getMouseY());
-                if (this.Inventory.CanSplitSelectedItem())
-                {
-                    stackAmount = this.Inventory.GetDefaultSplitStackAmount();
-
-                    return EInputHandled.Consumed;
-                }
-            }
-            return EInputHandled.NotHandled;
-        }
-
-        public override EInputHandled CancelMove()
-        {
-            this.Inventory.CancelSplit();
-            return base.CancelMove();
-        }
-
-        public override void OnStackAmountEntered(int amount)
-        {
-            this.Inventory.SplitSelectedItem(amount);
         }
     }
 }

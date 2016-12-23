@@ -11,20 +11,36 @@ namespace StackSplitX.MenuHandlers
 {
     public class InventoryHandler
     {
+        /// <summary>If the handler has been initialized yet by calling Init.</summary>
         public bool Initialized => this.NativeInventory != null;
 
+        /// <summary>Convenience for grabbing native inventory buttons.</summary>
         private List<ClickableComponent> Inventory => this.NativeInventory.inventory;
+
+        /// <summary>Convenience for grabbing native inventory items.</summary>
         private List<Item> InventoryItems => this.NativeInventory.actualInventory;
 
         /// <summary>Native inventory.</summary>
         private InventoryMenu NativeInventory;
+
+        /// <summary>Inventory interface bounds.</summary>
         private Rectangle Bounds;
+        
+        /// <summary>Where the user clicked so moving </summary>
         private Point SelectedItemPosition;
+        
+        /// <summary>The held item field owned by the parent menu that contains the inventory.</summary>
         private IPrivateField<Item> HeldItemField;
+
+        /// <summary>The hovered item field owned by the parent menu that contains the inventory.</summary>
         private IPrivateField<Item> HoveredItemField;
+        
+        /// <summary>Currently hovered item in the inventory.</summary>
         private Item HoveredItem;
-        private IReflectionHelper Reflection;
-        private IMonitor Monitor;
+
+        private readonly IReflectionHelper Reflection;
+        private readonly IMonitor Monitor;
+
 
         public InventoryHandler(IReflectionHelper reflection, IMonitor monitor)
         {
@@ -58,6 +74,9 @@ namespace StackSplitX.MenuHandlers
             return this.Bounds.Contains(mousePos);
         }
 
+        /// <summary>Broad phase check to see if the inventory interface was clicked.</summary>
+        /// <param name="mouseX">Mouse X position.</param>
+        /// <param name="mouseY">Mouse Y position.</param>
         public bool WasClicked(int mouseX, int mouseY)
         {
             Debug.Assert(this.Initialized);

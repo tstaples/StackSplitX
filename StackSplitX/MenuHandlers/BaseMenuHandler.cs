@@ -10,24 +10,46 @@ namespace StackSplitX.MenuHandlers
     public abstract class BaseMenuHandler<TMenuType> 
         : IMenuHandler where TMenuType : IClickableMenu
     {
-        protected StackSplitMenu SplitMenu = null;
-        protected TMenuType NativeMenu { get; private set; }
-        protected IModHelper Helper { get; private set; }
-        protected IMonitor Monitor { get; private set; }
+        /// <summary>The inventory handler.</summary>
+        protected InventoryHandler Inventory;
 
+        /// <summary>Split menu we display for the user to input the desired stack size.</summary>
+        protected StackSplitMenu SplitMenu;
+
+        /// <summary>Native game menu this handler is for.</summary>
+        protected TMenuType NativeMenu { get; private set; }
+
+        /// <summary>Mod helper.</summary>
+        protected readonly IModHelper Helper;
+        
+        /// <summary>Monitor for logging.</summary>
+        protected readonly IMonitor Monitor;
+
+        /// <summary>Does this menu have an inventory section.</summary>
+        protected bool HasInventory { get; set; } = true;
+
+        /// <summary>Tracks if the menu is currently open.</summary>
         private bool IsMenuOpen = false;
 
+        /// <summary>Constructs and instance.</summary>
+        /// <param name="helper">Mod helper instance.</param>
+        /// <param name="monitor">Monitor instance.</param>
         public BaseMenuHandler(IModHelper helper, IMonitor monitor)
         {
             this.Helper = helper;
             this.Monitor = monitor;
+            this.Inventory = new InventoryHandler(helper.Reflection, monitor);
         }
 
+        /// <summary>Checks if the menu this handler wraps is open.</summary>
+        /// <returns>True if it is open, false otherwise.</returns>
         public virtual bool IsOpen()
         {
             return this.IsMenuOpen;
         }
 
+        /// <summary>Notifies the handler that it's native menu has been opened.</summary>
+        /// <param name="menu">The menu that was opened.</param>
         public virtual void Open(IClickableMenu menu)
         {
             Debug.Assert(menu is TMenuType);
@@ -35,12 +57,14 @@ namespace StackSplitX.MenuHandlers
             this.IsMenuOpen = true;
         }
 
+        /// <summary>Notifies the handler that it's native menu was closed.</summary>
         public virtual void Close()
         {
             this.IsMenuOpen = false;
             this.SplitMenu = null;
         }
 
+        /// <summary>Runs on tick for handling things like highlighting text.</summary>
         public virtual void Update()
         {
             if (Game1.mouseClickPolling < GetRightClickPollingInterval())
@@ -54,11 +78,13 @@ namespace StackSplitX.MenuHandlers
             }
         }
 
+        /// <summary>Tells the handler to close the split menu.</summary>
         public virtual void CloseSplitMenu()
         {
             this.SplitMenu = null;
         }
 
+        /// <summary>Draws the split menu.</summary>
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             if (this.SplitMenu != null)
@@ -67,6 +93,10 @@ namespace StackSplitX.MenuHandlers
             }
         }
 
+        /// <summary>Interprets the mouse input and propogates it to the appropriate handlers.</summary>
+        /// <param name="priorState">Previous mouse state.</param>
+        /// <param name="newState">New mouse state.</param>
+        /// <returns>Whether the input was handled, consumed or not handled.</returns>
         public EInputHandled HandleMouseInput(MouseState priorState, MouseState newState)
         {
             // Was right click pressed
@@ -81,24 +111,34 @@ namespace StackSplitX.MenuHandlers
                         // TODO: return this value if it's consumed?
                         CancelMove();
                     }
+
+                    // Notify the handler the inventory was clicked.
+                    if (this.HasInventory && this.Inventory.Initialized && this.Inventory.WasClicked(Game1.getMouseX(), Game1.getMouseY()))
+                    {
+                        return InventoryClicked();
+                    }
+
                     return OpenSplitMenu();
                 }
                 return EInputHandled.NotHandled;
             }
-            else if (Utils.WasPressedThisFrame(priorState.LeftButton, newState.LeftButton) && this.SplitMenu != null)
+            else if (Utils.WasPressedThisFrame(priorState.LeftButton, newState.LeftButton))
             {
                 // If the player clicks within the bounds of the tooltip then forward the input to that. 
                 // Otherwise they're clicking elsewhere and we should close the tooltip.
-                if (this.SplitMenu.ContainsPoint(Game1.getMouseX(), Game1.getMouseY()))
+                if (this.SplitMenu != null && this.SplitMenu.ContainsPoint(Game1.getMouseX(), Game1.getMouseY()))
                 {
                     this.SplitMenu.ReceiveLeftClick(Game1.getMouseX(), Game1.getMouseY());
                     return EInputHandled.Consumed;
                 }
-                else
+
+                var handled = HandleLeftClick();
+                if (handled == EInputHandled.NotHandled && this.SplitMenu != null)
                 {
                     // Lost focus; cancel the move (run default behavior)
                     return CancelMove();
                 }
+                return handled;
             }
             else if (this.SplitMenu != null)
             {
@@ -108,6 +148,9 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.NotHandled;
         }
 
+        /// <summary>Checks with the current menu handler if the keyboard input should be consumed.</summary>
+        /// <param name="keyPressed">Which key was pressed.</param>
+        /// <returns>If the input was handled or should be consumed.</returns>
         public EInputHandled HandleKeyboardInput(Keys keyPressed)
         {
             if (ShouldConsumeKeyboardInput(keyPressed))
@@ -117,31 +160,61 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.NotHandled;
         }
 
+        /// <summary>Allows derived classes to handle left clicks when they are not focused on the split menu.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
+        protected virtual EInputHandled HandleLeftClick()
+        {
+            return EInputHandled.NotHandled;
+        }
+
+        /// <summary>Whether we should consume the input, preventing it from reaching the game.</summary>
+        /// <param name="keyPressed">The key that was pressed.</param>
+        /// <returns>True if it should be consumed, false otherwise.</returns>
         protected virtual bool ShouldConsumeKeyboardInput(Keys keyPressed)
         {
             return (this.SplitMenu != null);
         }
 
+        /// <summary>How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)</summary>
+        /// <returns>The polling interval.</returns>
         protected virtual float GetRightClickPollingInterval()
         {
-            // How long the right click has to be held for before the receiveRIghtClick gets called rapidly (See Game1.Update)
             return 650f;
         }
 
+        /// <summary>Allows derived handlers to provide additional checks before opening the split menu.</summary>
+        /// <returns>True if it can be opened.</returns>
         protected virtual bool CanOpenSplitMenu()
         {
             return true;
         }
 
+        /// <summary>Main event that derived handlers use to setup necessary hooks and other things needed to take over how the stack is split.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
         protected abstract EInputHandled OpenSplitMenu();
 
-        // Called when lost focus
+        /// <summary>Alternative of OpenSplitMenu which is invoked when the generic inventory handler is clicked.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
+        protected virtual EInputHandled InventoryClicked()
+        {
+            Debug.Assert(this.HasInventory);
+            return OpenSplitMenu();
+        }
+
+        /// <summary>Called when the current handler loses focus when the split menu is open, allowing it to cancel the operation or run the default behaviour.</summary>
+        /// <returns>If the input was handled or consumed.</returns>
         protected virtual EInputHandled CancelMove()
         {
             CloseSplitMenu();
+
+            if (this.HasInventory && this.Inventory.Initialized)
+                this.Inventory.CancelSplit();
+
             return EInputHandled.NotHandled;
         }
 
+        /// <summary>Callback given to the split menu that is invoked when a value is submitted.</summary>
+        /// <param name="s">The user input.</param>
         protected virtual void OnStackAmountReceived(string s)
         {
             CloseSplitMenu();

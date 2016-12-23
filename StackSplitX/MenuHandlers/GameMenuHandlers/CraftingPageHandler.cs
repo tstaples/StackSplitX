@@ -8,16 +8,51 @@ namespace StackSplitX.MenuHandlers
 {
     public class CraftingPageHandler : GameMenuPageHandler<CraftingPage>
     {
+        /// <summary>Used to store the click location so it's the same after the user submits the split menu even if they moved their mouse.</summary>
         private Point ClickItemLocation;
 
+        /// <summary>Used to track if the inventory or crafting menu recieved input last.</summary>
+        private bool WasInventoryClicked = false;
+
+        /// <summary>Constructs and instance.</summary>
+        /// <param name="helper">Mod helper instance.</param>
+        /// <param name="monitor">Monitor instance.</param>
         public CraftingPageHandler(IModHelper helper, IMonitor monitor)
             : base(helper, monitor)
         {
         }
 
+        /// <summary>Notifies the page handler that it's corresponding menu has been opened.</summary>
+        /// <param name="menu">The native menu owning all the pages.</param>
+        /// <param name="page">The specific page this handler is for.</param>
+        /// <param name="inventory">The inventory handler.</param>
+        public override void Open(IClickableMenu menu, IClickableMenu page, InventoryHandler inventory)
+        {
+            base.Open(menu, page, inventory);
+
+            var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
+            var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoverItem");
+            var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
+
+            this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+        }
+
+        /// <summary>Tells the handler that the inventory was shift-clicked.</summary>
+        /// <param name="stackAmount">The default stack amount to display in the split menu.</param>
+        /// <returns>If the input was handled or consumed. Generally returns not handled if an invalid item was selected.</returns>
+        public override EInputHandled InventoryClicked(out int stackAmount)
+        {
+            this.WasInventoryClicked = true;
+            return base.InventoryClicked(out stackAmount);
+        }
+
+        /// <summary>Tells the handler that the interface recieved the hotkey input.</summary>
+        /// <param name="stackAmount">The default stack amount to display in the split menu.</param>
+        /// <returns>If the input was handled or consumed. Generally returns not handled if an invalid item was selected.</returns>
         public override EInputHandled OpenSplitMenu(out int stackAmount)
         {
             stackAmount = 1; // Craft 1 by default
+            this.WasInventoryClicked = false;
 
             var hoverRecipe = Helper.Reflection.GetPrivateValue<CraftingRecipe>(this.MenuPage, "hoverRecipe");
             var hoveredItem = hoverRecipe?.createItem();
@@ -37,8 +72,17 @@ namespace StackSplitX.MenuHandlers
             return EInputHandled.Consumed;
         }
 
+        /// <summary>Lets the handler run the logic for doing the split after the amount has been input.</summary>
+        /// <param name="amount">The stack size the user requested.</param>
         public override void OnStackAmountEntered(int amount)
         {
+            // Run regular inventory logic if that's what was clicked.
+            if (this.WasInventoryClicked)
+            {
+                base.OnStackAmountEntered(amount);
+                return;
+            }
+
             // TODO: check the max amonut able to be crafted to avoid unnecessary iterations
             for (int i = 0; i < amount; ++i)
             {
