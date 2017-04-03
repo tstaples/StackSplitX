@@ -107,7 +107,7 @@ namespace StackSplitX.MenuHandlers
         /// <returns>The instance or null if no valid item was selected.</returns>
         public new static ShopAction Create(IReflectionHelper reflection, IMonitor monitor, ShopMenu shopMenu, Point mouse)
         {
-            var inventory = reflection.GetPrivateValue<InventoryMenu>(shopMenu, "inventory");
+            var inventory = shopMenu.inventory;
             var item = inventory.getItemAt(mouse.X, mouse.Y);
             return item != null ? new SellAction(reflection, monitor, shopMenu, item) : null;
         }

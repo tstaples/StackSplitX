@@ -26,7 +26,7 @@ namespace StackSplitX.MenuHandlers
         public override void InitInventory()
         {
             // We need to do this explicitly because the crafting page uses a different variable name for hover item.
-            var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.MenuPage, "inventory");
+            var inventoryMenu = this.MenuPage.GetType().GetField("inventory").GetValue(this.MenuPage) as InventoryMenu;
             var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoverItem");
             var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
 

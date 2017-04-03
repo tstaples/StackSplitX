@@ -102,8 +102,7 @@ namespace StackSplitX.MenuHandlers
         public static int GetClickedItemIndex(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
             int currentItemIndex = reflection.GetPrivateValue<int>(shopMenu, "currentItemIndex");
-            var forSaleButtons = reflection.GetPrivateValue<List<ClickableComponent>>(shopMenu, "forSaleButtons");
-            int saleButtonIndex = forSaleButtons.FindIndex(button => button.containsPoint(p.X, p.Y));
+            int saleButtonIndex = shopMenu.forSaleButtons.FindIndex(button => button.containsPoint(p.X, p.Y));
             return saleButtonIndex > -1 ? currentItemIndex + saleButtonIndex : -1;
         }
 

@@ -4,6 +4,7 @@ using StardewValley.Menus;
 using StardewValley;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
+using SFarmer = StardewValley.Farmer;
 
 namespace StackSplitX.MenuHandlers
 {
@@ -95,7 +96,7 @@ namespace StackSplitX.MenuHandlers
             try
             {
                 this.PlayerInventoryMenu = this.NativeMenu.inventory;
-                this.ItemsToGrabMenu = this.Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "ItemsToGrabMenu");
+                this.ItemsToGrabMenu = this.NativeMenu.ItemsToGrabMenu;
 
                 // Emulate the right click method that would normally happen.
                 this.HoverItem = this.NativeMenu.hoveredItem;
@@ -147,7 +148,7 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Callback override for when an item in the inventory is selected.</summary>
         /// <param name="item">Item that was selected.</param>
         /// <param name="who">The player that selected it.</param>
-        private void OnItemSelect(Item item, Farmer who)
+        private void OnItemSelect(Item item, SFarmer who)
         {
             MoveItems(item, who, this.PlayerInventoryMenu, this.OriginalItemSelectCallback);
         }
@@ -155,7 +156,7 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Callback override for when an item in the shop is selected.</summary>
         /// <param name="item">Item that was selected.</param>
         /// <param name="who">The player that selected it.</param>
-        private void OnItemGrab(Item item, Farmer who)
+        private void OnItemGrab(Item item, SFarmer who)
         {
             MoveItems(item, who, this.ItemsToGrabMenu, this.OriginalItemGrabCallback);
         }
@@ -165,7 +166,7 @@ namespace StackSplitX.MenuHandlers
         /// <param name="who">The player that selected the items.</param>
         /// <param name="inventory">Either the player inventory or the shop inventory.</param>
         /// <param name="callback">The native callback to invoke to continue with the regular behavior after we've modified the stack.</param>
-        private void MoveItems(Item item, Farmer who, InventoryMenu inventory, ItemGrabMenu.behaviorOnItemSelect callback)
+        private void MoveItems(Item item, SFarmer who, InventoryMenu inventory, ItemGrabMenu.behaviorOnItemSelect callback)
         {
             Debug.Assert(this.StackAmount > 0);
 

@@ -242,7 +242,7 @@ namespace StackSplitX.MenuHandlers
 
             try
             {
-                var inventoryMenu = Helper.Reflection.GetPrivateValue<InventoryMenu>(this.NativeMenu, "inventory");
+                var inventoryMenu = this.NativeMenu.GetType().GetField("inventory").GetValue(this.NativeMenu) as InventoryMenu;
                 var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "hoveredItem");
                 var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.NativeMenu, "heldItem");
 
