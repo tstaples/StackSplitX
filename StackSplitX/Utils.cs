@@ -50,9 +50,6 @@ namespace StackSplitX
             int[] output = new int[array.Length];
             for (int i = 0; i < array.Length; ++i)
             {
-                if (array[i] == null || !array[i].IsInt32())
-                    continue;
-
                 try
                 {
                     output[i] = Int32.Parse(array[i]);

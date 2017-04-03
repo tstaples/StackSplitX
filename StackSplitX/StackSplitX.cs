@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
 using StardewModdingAPI;
-using StardewModdingAPI.Inheritance;
 using StardewModdingAPI.Events;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
@@ -26,6 +25,9 @@ namespace StackSplitX
 
         /// <summary>Used to avoid resize events sent to menu changed.</summary>
         private bool WasResizeEvent = false;
+
+        /// <summary>An index incremented on every tick and reset every 60th tick (0–59).</summary>
+        private int CurrentUpdateTick = 0;
 
         /// <summary>Tracks what tick a resize event occurs on so we can resize the current handler next frame. -1 means no resize event.</summary>
         private int TickResizedOn = -1;
@@ -79,7 +81,7 @@ namespace StackSplitX
         private void OnResize(object sender, EventArgs e)
         {
             this.WasResizeEvent = true;
-            this.TickResizedOn = SGame.Instance.CurrentUpdateTick;
+            this.TickResizedOn = this.CurrentUpdateTick;
         }
 
         /// <summary>Callback for the menu closed event; closes the current handler and unsubscribes from the events.</summary>
@@ -166,10 +168,14 @@ namespace StackSplitX
         /// <summary>Callback for the UpdateTick event. Updates the current handler.</summary>
         private void OnUpdate(object sender, EventArgs e)
         {
+            this.CurrentUpdateTick += 1;
+            if (this.CurrentUpdateTick >= 60)
+                this.CurrentUpdateTick = 0;
+
             // If TickResizedOn isn't -1 then there was a resize event, so do the resize next tick.
             // We need to do it this way rather than where we ignore resize in menu changed since not all menus are recreated on resize,
             // and during the actual resize event the new menu will not have been created yet so we need to wait.
-            if (this.TickResizedOn > -1 && this.TickResizedOn != SGame.Instance.CurrentUpdateTick)
+            if (this.TickResizedOn > -1 && this.TickResizedOn != this.CurrentUpdateTick)
             {
                 this.TickResizedOn = -1;
                 this.CurrentMenuHandler?.Close();
