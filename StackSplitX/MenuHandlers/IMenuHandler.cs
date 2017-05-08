@@ -26,6 +26,9 @@ namespace StackSplitX.MenuHandlers
         /// <returns>True if it is open, false otherwise.</returns>
         bool IsOpen();
 
+        /// <summary>Checks the menu is the correct type.</summary>
+        bool IsCorrectMenuType(IClickableMenu menu);
+
         /// <summary>Notifies the handler that it's native menu has been opened.</summary>
         /// <param name="menu">The menu that was opened.</param>
         void Open(IClickableMenu menu);

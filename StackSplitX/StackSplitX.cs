@@ -179,7 +179,16 @@ namespace StackSplitX
             {
                 this.TickResizedOn = -1;
                 this.CurrentMenuHandler?.Close();
-                this.CurrentMenuHandler?.Open(Game1.activeClickableMenu);
+                // Checking the menu type since actions like returning to title will cause a resize event (idk why the window is maximized)
+                // and the activeClickableMenu will not be what it was before.
+                if (this.CurrentMenuHandler?.IsCorrectMenuType(Game1.activeClickableMenu) == true)
+                {
+                    this.CurrentMenuHandler?.Open(Game1.activeClickableMenu);
+                }
+                else
+                {
+                    this.CurrentMenuHandler = null;
+                }
             }
 
             this.CurrentMenuHandler?.Update();

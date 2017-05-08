@@ -54,11 +54,17 @@ namespace StackSplitX.MenuHandlers
             return this.IsMenuOpen;
         }
 
+        /// <summary>Checks the menu is the correct type.</summary>
+        public bool IsCorrectMenuType(IClickableMenu menu)
+        {
+            return menu is TMenuType;
+        }
+
         /// <summary>Notifies the handler that it's native menu has been opened.</summary>
         /// <param name="menu">The menu that was opened.</param>
         public virtual void Open(IClickableMenu menu)
         {
-            Debug.Assert(menu is TMenuType);
+            Debug.Assert(IsCorrectMenuType(menu));
             this.NativeMenu = menu as TMenuType;
             this.IsMenuOpen = true;
 
