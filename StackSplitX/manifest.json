@@ -10,5 +10,6 @@
   "Description": "Custom Stack splitting.",
   "PerSaveConfigs": false,
   "MinimumApiVersion": "1.4",
+  "UniqueID": "tstaples.StackSplitX",
   "EntryDll": "StackSplitX.dll"
 }
