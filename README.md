@@ -42,19 +42,10 @@ Player inventory
 Junimo Note Menus (Community center bundles)
 ![Junimo](Images/Junimo_Large.png)
 
-
-## Requirements
-
-This mod works with the most recent version of Stardew Valley (last tested with 1.1).
-
-This mod requires [SMAPI](https://github.com/ClxS/SMAPI) __1.4 or higher to run__.
-
-For instructions on installing SMAPI view [this help page](http://canimod.com/guides/using-mods#installing-smapi).
-
-## Installation
-
-1. Download the latest release [here](https://github.com/tstaples/StackSplitX/releases).
-2. Unzip the contents into your Mods folder which is located in the same directory as your Stardew Valley.exe and StardewValleyModdingAPI.exe.
+## Install
+1. [Install the latest version of SMAPI](https://smapi.io/).
+2. [Install this mod from Nexus mods](http://www.nexusmods.com/stardewvalley/mods/798/).
+3. Run the game using SMAPI.
 
 For more information on installing and using mods see [this page](http://canimod.com/guides/using-mods).
 
