@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.5-beta
+* Compatibility for SDV 1.3-beta.
+
 ### 1.4
 * Fix obsolete code warnings from SMAPI 2.5.
 

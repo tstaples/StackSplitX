@@ -60,7 +60,7 @@ namespace StackSplitX.MenuHandlers
                 return EInputHandled.NotHandled;
 
             // Only allow items that can actually stack
-            var extraIems = cooking ? Utility.getHomeOfFarmer(Game1.player).fridge.items : null;
+            var extraIems = cooking ? Utility.getHomeOfFarmer(Game1.player).fridge.Value.items : null;
             if (!hoveredItem.canStackWith(hoveredItem) || !hoverRecipe.doesFarmerHaveIngredientsInInventory(extraIems))
                 return EInputHandled.NotHandled;
 

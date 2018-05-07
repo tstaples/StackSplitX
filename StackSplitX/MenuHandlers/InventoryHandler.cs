@@ -18,7 +18,7 @@ namespace StackSplitX.MenuHandlers
         private List<ClickableComponent> Inventory => this.NativeInventory.inventory;
 
         /// <summary>Convenience for grabbing native inventory items.</summary>
-        private List<Item> InventoryItems => this.NativeInventory.actualInventory;
+        private IList<Item> InventoryItems => this.NativeInventory.actualInventory;
 
         /// <summary>Native inventory.</summary>
         private InventoryMenu NativeInventory;
