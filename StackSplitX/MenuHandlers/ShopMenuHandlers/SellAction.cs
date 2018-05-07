@@ -59,7 +59,7 @@ namespace StackSplitX.MenuHandlers
             if (amount == 1)
             {
                 // Play the sell animation
-                var animationsField = this.Reflection.GetPrivateField<List<TemporaryAnimatedSprite>>(this.NativeShopMenu, "animations");
+                var animationsField = this.Reflection.GetField<List<TemporaryAnimatedSprite>>(this.NativeShopMenu, "animations");
                 var animations = animationsField.GetValue();
 
                 // Messy because it's a direct copy-paste from the source code
@@ -83,7 +83,7 @@ namespace StackSplitX.MenuHandlers
         private int CalculateSalePrice(Item item, int amount)
         {
             // Formula from ShopMenu.cs
-            float sellPercentage = this.Reflection.GetPrivateValue<float>(this.NativeShopMenu, "sellPercentage");
+            float sellPercentage = this.Reflection.GetField<float>(this.NativeShopMenu, "sellPercentage").GetValue();
             int price = 0;
             if (item is StardewValley.Object)
             {

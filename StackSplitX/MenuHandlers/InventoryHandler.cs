@@ -30,10 +30,10 @@ namespace StackSplitX.MenuHandlers
         private Point SelectedItemPosition;
         
         /// <summary>The held item field owned by the parent menu that contains the inventory.</summary>
-        private IPrivateField<Item> HeldItemField;
+        private IReflectedField<Item> HeldItemField;
 
         /// <summary>The hovered item field owned by the parent menu that contains the inventory.</summary>
-        private IPrivateField<Item> HoveredItemField;
+        private IReflectedField<Item> HoveredItemField;
         
         /// <summary>Currently hovered item in the inventory.</summary>
         private Item HoveredItem;
@@ -55,7 +55,7 @@ namespace StackSplitX.MenuHandlers
 
         /// <summary>This must be called everytime the inventory is opened/resized.</summary>
         /// <param name="inventory">Native inventory.</param>
-        public void Init(InventoryMenu inventory, IPrivateField<Item> heldItemField, IPrivateField<Item> hoveredItemField)
+        public void Init(InventoryMenu inventory, IReflectedField<Item> heldItemField, IReflectedField<Item> hoveredItemField)
         {
             this.NativeInventory = inventory;
             this.HeldItemField = heldItemField;

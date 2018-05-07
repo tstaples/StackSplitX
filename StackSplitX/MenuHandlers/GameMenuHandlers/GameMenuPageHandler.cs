@@ -64,8 +64,8 @@ namespace StackSplitX.MenuHandlers
             try
             {
                 var inventoryMenu = this.MenuPage.GetType().GetField("inventory").GetValue(this.MenuPage) as InventoryMenu;
-                var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoveredItem");
-                var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
+                var hoveredItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "hoveredItem");
+                var heldItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem");
 
                 this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
             }

@@ -27,8 +27,8 @@ namespace StackSplitX.MenuHandlers
         {
             // We need to do this explicitly because the crafting page uses a different variable name for hover item.
             var inventoryMenu = this.MenuPage.GetType().GetField("inventory").GetValue(this.MenuPage) as InventoryMenu;
-            var hoveredItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "hoverItem");
-            var heldItemField = Helper.Reflection.GetPrivateField<Item>(this.MenuPage, "heldItem");
+            var hoveredItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "hoverItem");
+            var heldItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem");
 
             this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
         }
@@ -50,10 +50,10 @@ namespace StackSplitX.MenuHandlers
             stackAmount = 1; // Craft 1 by default
             this.WasInventoryClicked = false;
 
-            var hoverRecipe = Helper.Reflection.GetPrivateValue<CraftingRecipe>(this.MenuPage, "hoverRecipe");
+            var hoverRecipe = Helper.Reflection.GetField<CraftingRecipe>(this.MenuPage, "hoverRecipe").GetValue();
             var hoveredItem = hoverRecipe?.createItem();
-            var heldItem = Helper.Reflection.GetPrivateValue<Item>(this.MenuPage, "heldItem");
-            var cooking = Helper.Reflection.GetPrivateValue<bool>(this.MenuPage, "cooking");
+            var heldItem = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem").GetValue();
+            var cooking = Helper.Reflection.GetField<bool>(this.MenuPage, "cooking").GetValue();
 
             // If we're holding an item already then it must stack with the item we want to craft.
             if (hoveredItem == null || (heldItem != null && heldItem.Name != hoveredItem.Name))

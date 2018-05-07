@@ -48,7 +48,7 @@ namespace StackSplitX.MenuHandlers
             try
             {
                 this.Inventory = this.NativeShopMenu.inventory;
-                this.ShopCurrencyType = this.Reflection.GetPrivateValue<int>(this.NativeShopMenu, "currency");
+                this.ShopCurrencyType = this.Reflection.GetField<int>(this.NativeShopMenu, "currency").GetValue();
             }
             catch (Exception e)
             {

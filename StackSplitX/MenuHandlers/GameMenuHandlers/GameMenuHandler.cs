@@ -48,7 +48,7 @@ namespace StackSplitX.MenuHandlers
         {
             base.Open(menu);
 
-            this.Tabs = this.Helper.Reflection.GetPrivateValue<List<ClickableComponent>>(this.NativeMenu, "tabs");
+            this.Tabs = this.Helper.Reflection.GetField<List<ClickableComponent>>(this.NativeMenu, "tabs").GetValue();
 
             if (!ChangeTabs(this.CurrentTab))
             {
@@ -147,7 +147,7 @@ namespace StackSplitX.MenuHandlers
                 this.PreviousTab = newTab;
                 this.CurrentPageHandler = this.PageHandlers[newTab];
 
-                var pages = Helper.Reflection.GetPrivateValue<List<IClickableMenu>>(this.NativeMenu, "pages");
+                var pages = Helper.Reflection.GetField<List<IClickableMenu>>(this.NativeMenu, "pages").GetValue();
                 this.CurrentPageHandler.Open(this.NativeMenu, pages[newTab], this.Inventory);
                 return true;
             }

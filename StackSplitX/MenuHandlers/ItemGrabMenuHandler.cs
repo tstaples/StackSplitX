@@ -221,7 +221,7 @@ namespace StackSplitX.MenuHandlers
             try
             {
                 // Replace the delegates with our own
-                var itemSelectCallbackField = this.Helper.Reflection.GetPrivateField<ItemGrabMenu.behaviorOnItemSelect>(this.NativeMenu, "behaviorFunction");
+                var itemSelectCallbackField = this.Helper.Reflection.GetField<ItemGrabMenu.behaviorOnItemSelect>(this.NativeMenu, "behaviorFunction");
                 var itemGrabCallbackField = typeof(ItemGrabMenu).GetField("behaviorOnItemGrab");
 
                 this.OriginalItemGrabCallback = itemGrabCallbackField.GetValue(this.NativeMenu) as ItemGrabMenu.behaviorOnItemSelect;
@@ -248,7 +248,7 @@ namespace StackSplitX.MenuHandlers
 
             try
             {
-                var itemSelectCallbackField = this.Helper.Reflection.GetPrivateField<ItemGrabMenu.behaviorOnItemSelect>(this.NativeMenu, "behaviorFunction");
+                var itemSelectCallbackField = this.Helper.Reflection.GetField<ItemGrabMenu.behaviorOnItemSelect>(this.NativeMenu, "behaviorFunction");
                 var itemGrabCallbackField = typeof(ItemGrabMenu).GetField("behaviorOnItemGrab");
 
                 itemSelectCallbackField.SetValue(this.OriginalItemSelectCallback);

@@ -28,7 +28,7 @@ namespace StackSplitX.MenuHandlers
         /// <summary>Verifies the conditions to perform te action.</summary>
         public override bool CanPerformAction()
         {
-            var heldItem = this.Reflection.GetPrivateValue<Item>(this.NativeShopMenu, "heldItem");
+            var heldItem = this.Reflection.GetField<Item>(this.NativeShopMenu, "heldItem").GetValue();
             int currentMonies = ShopMenu.getPlayerCurrencyAmount(Game1.player, this.ShopCurrencyType);
 
             return (this.ClickedItem != null && 
@@ -42,8 +42,8 @@ namespace StackSplitX.MenuHandlers
         /// <param name="clickLocation">Where the player clicked.</param>
         public override void PerformAction(int amount, Point clickLocation)
         {
-            var heldItem = this.Reflection.GetPrivateValue<Item>(this.NativeShopMenu, "heldItem");
-            var priceAndStockField = this.Reflection.GetPrivateField<Dictionary<Item, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
+            var heldItem = this.Reflection.GetField<Item>(this.NativeShopMenu, "heldItem").GetValue();
+            var priceAndStockField = this.Reflection.GetField<Dictionary<Item, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
             var priceAndStockMap = priceAndStockField.GetValue();
             Debug.Assert(priceAndStockMap.ContainsKey(this.ClickedItem));
 
@@ -64,7 +64,7 @@ namespace StackSplitX.MenuHandlers
                 return;
 
             // Try to purchase the item - method returns true if it should be removed from the shop since there's no more.
-            var purchaseMethodInfo = this.Reflection.GetPrivateMethod(this.NativeShopMenu, "tryToPurchaseItem");
+            var purchaseMethodInfo = this.Reflection.GetMethod(this.NativeShopMenu, "tryToPurchaseItem");
             int index = BuyAction.GetClickedItemIndex(this.Reflection, this.NativeShopMenu, clickLocation);
             if (purchaseMethodInfo.Invoke<bool>(this.ClickedItem, heldItem, amount, clickLocation.X, clickLocation.Y, index))
             {
@@ -74,7 +74,7 @@ namespace StackSplitX.MenuHandlers
                 priceAndStockMap.Remove(this.ClickedItem);
                 priceAndStockField.SetValue(priceAndStockMap);
 
-                var itemsForSaleField = this.Reflection.GetPrivateField<List<Item>>(this.NativeShopMenu, "forSale");
+                var itemsForSaleField = this.Reflection.GetField<List<Item>>(this.NativeShopMenu, "forSale");
                 var itemsForSale = itemsForSaleField.GetValue();
                 itemsForSale.Remove(this.ClickedItem);
                 itemsForSaleField.SetValue(itemsForSale);
@@ -88,7 +88,7 @@ namespace StackSplitX.MenuHandlers
         /// <returns>The clicked item or null if none was clicked.</returns>
         public static Item GetClickedShopItem(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
-            var itemsForSale = reflection.GetPrivateValue<List<Item>>(shopMenu, "forSale");
+            var itemsForSale = reflection.GetField<List<Item>>(shopMenu, "forSale").GetValue();
             int index = GetClickedItemIndex(reflection, shopMenu, p);
             Debug.Assert(index < itemsForSale.Count);
             return index >= 0 ? itemsForSale[index] : null;
@@ -101,7 +101,7 @@ namespace StackSplitX.MenuHandlers
         /// <returns>The clicked item or null if none was clicked.</returns>
         public static int GetClickedItemIndex(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
-            int currentItemIndex = reflection.GetPrivateValue<int>(shopMenu, "currentItemIndex");
+            int currentItemIndex = reflection.GetField<int>(shopMenu, "currentItemIndex").GetValue();
             int saleButtonIndex = shopMenu.forSaleButtons.FindIndex(button => button.containsPoint(p.X, p.Y));
             return saleButtonIndex > -1 ? currentItemIndex + saleButtonIndex : -1;
         }
