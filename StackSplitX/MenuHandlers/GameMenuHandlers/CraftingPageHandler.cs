@@ -28,9 +28,8 @@ namespace StackSplitX.MenuHandlers
             // We need to do this explicitly because the crafting page uses a different variable name for hover item.
             var inventoryMenu = this.MenuPage.GetType().GetField("inventory").GetValue(this.MenuPage) as InventoryMenu;
             var hoveredItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "hoverItem");
-            var heldItemField = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem");
 
-            this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+            this.Inventory.Init(inventoryMenu, hoveredItemField);
         }
 
         /// <summary>Tells the handler that the inventory was shift-clicked.</summary>
@@ -52,7 +51,7 @@ namespace StackSplitX.MenuHandlers
 
             var hoverRecipe = Helper.Reflection.GetField<CraftingRecipe>(this.MenuPage, "hoverRecipe").GetValue();
             var hoveredItem = hoverRecipe?.createItem();
-            var heldItem = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem").GetValue();
+            var heldItem = Game1.player.CursorSlotItem;
             var cooking = Helper.Reflection.GetField<bool>(this.MenuPage, "cooking").GetValue();
 
             // If we're holding an item already then it must stack with the item we want to craft.

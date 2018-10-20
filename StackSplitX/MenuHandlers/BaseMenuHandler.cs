@@ -250,9 +250,8 @@ namespace StackSplitX.MenuHandlers
             {
                 var inventoryMenu = this.NativeMenu.GetType().GetField("inventory").GetValue(this.NativeMenu) as InventoryMenu;
                 var hoveredItemField = Helper.Reflection.GetField<Item>(this.NativeMenu, "hoveredItem");
-                var heldItemField = Helper.Reflection.GetField<Item>(this.NativeMenu, "heldItem");
 
-                this.Inventory.Init(inventoryMenu, heldItemField, hoveredItemField);
+                this.Inventory.Init(inventoryMenu, hoveredItemField);
             }
             catch (Exception e)
             {
