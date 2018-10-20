@@ -51,7 +51,7 @@ namespace StackSplitX.MenuHandlers
 
             var hoverRecipe = Helper.Reflection.GetField<CraftingRecipe>(this.MenuPage, "hoverRecipe").GetValue();
             var hoveredItem = hoverRecipe?.createItem();
-            var heldItem = Game1.player.CursorSlotItem;
+            var heldItem = Helper.Reflection.GetField<Item>(this.MenuPage, "heldItem").GetValue();
             var cooking = Helper.Reflection.GetField<bool>(this.MenuPage, "cooking").GetValue();
 
             // If we're holding an item already then it must stack with the item we want to craft.
