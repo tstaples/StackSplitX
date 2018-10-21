@@ -113,8 +113,8 @@ namespace StackSplitX
             var newMenuType = e.NewMenu.GetType();
             if (this.MenuHandlers.ContainsKey(newMenuType))
             {
-                // Close the current one of it's valid and not the same as the current one
-                if (this.CurrentMenuHandler != null && this.CurrentMenuHandler != this.MenuHandlers[newMenuType])
+                // Close the current one of it's valid
+                if (this.CurrentMenuHandler != null)
                 {
                     this.CurrentMenuHandler.Close();
                 }
