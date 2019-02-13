@@ -33,7 +33,7 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="2.1.0" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,20 +73,4 @@
     <None Include="manifest.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Condition="$(GamePlatform) == 'Windows'">
-    <PostBuildEvent>
-      set modDir=$(GamePath)\Mods\$(ProjectName)
-      if not exist "%modDir%" (mkdir "%modDir%")
-      copy "$(TargetDir)\$(TargetName).dll" "%modDir%\$(TargetName).dll"
-      copy "$(TargetDir)\$(TargetName).pdb" "%modDir%\$(TargetName).pdb"
-      copy "$(ProjectDir)\manifest.json" "%modDir%\manifest.json"
-    </PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
