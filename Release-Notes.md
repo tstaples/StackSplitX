@@ -1,5 +1,8 @@
 # Release Notes
 
+### 1.5
+* Compatibility with SMAPI 3.0 thanks to PathosChild.
+
 ### 1.5-beta
 * Compatibility for SDV 1.3-beta.
 
