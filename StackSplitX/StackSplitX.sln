@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.902
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackSplitX", "StackSplitX.csproj", "{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}"
 EndProject
@@ -11,12 +11,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{A02EE869-5042-408F-AB80-0BFF0BF4D9C8}.Release|Any CPU.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6587D118-F79D-441D-A2F6-5E86B00A3F0B}
 	EndGlobalSection
 EndGlobal
