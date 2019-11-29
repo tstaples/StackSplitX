@@ -38,12 +38,12 @@ namespace StackSplitX.MenuHandlers
         /// <param name="monitor">Monitor.</param>
         /// <param name="menu">Native shop menu.</param>
         /// <param name="item">Clicked item that this action will act on.</param>
-        public ShopAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, Item item)
+        public ShopAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, ISalable item)
         {
             this.Reflection = reflection;
             this.Monitor = monitor;
             this.NativeShopMenu = menu;
-            this.ClickedItem = item;
+            this.ClickedItem = (Item)item;
 
             try
             {

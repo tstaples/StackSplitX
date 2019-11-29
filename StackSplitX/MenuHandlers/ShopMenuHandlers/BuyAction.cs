@@ -18,7 +18,7 @@ namespace StackSplitX.MenuHandlers
         /// <param name="monitor">Monitor for logging.</param>
         /// <param name="menu">The native shop menu.</param>
         /// <param name="item">The item to buy.</param>
-        public BuyAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, Item item)
+        public BuyAction(IReflectionHelper reflection, IMonitor monitor, ShopMenu menu, ISalable item)
             : base(reflection, monitor, menu, item)
         {
             // Default amount
@@ -43,7 +43,7 @@ namespace StackSplitX.MenuHandlers
         public override void PerformAction(int amount, Point clickLocation)
         {
             var heldItem = this.Reflection.GetField<Item>(this.NativeShopMenu, "heldItem").GetValue();
-            var priceAndStockField = this.Reflection.GetField<Dictionary<Item, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
+            var priceAndStockField = this.Reflection.GetField<Dictionary<ISalable, int[]>>(this.NativeShopMenu, "itemPriceAndStock");
             var priceAndStockMap = priceAndStockField.GetValue();
             Debug.Assert(priceAndStockMap.ContainsKey(this.ClickedItem));
 
@@ -74,7 +74,7 @@ namespace StackSplitX.MenuHandlers
                 priceAndStockMap.Remove(this.ClickedItem);
                 priceAndStockField.SetValue(priceAndStockMap);
 
-                var itemsForSaleField = this.Reflection.GetField<List<Item>>(this.NativeShopMenu, "forSale");
+                var itemsForSaleField = this.Reflection.GetField<List<ISalable>>(this.NativeShopMenu, "forSale");
                 var itemsForSale = itemsForSaleField.GetValue();
                 itemsForSale.Remove(this.ClickedItem);
                 itemsForSaleField.SetValue(itemsForSale);
@@ -86,9 +86,9 @@ namespace StackSplitX.MenuHandlers
         /// <param name="shopMenu">Native shop menu.</param>
         /// <param name="p">Mouse location.</param>
         /// <returns>The clicked item or null if none was clicked.</returns>
-        public static Item GetClickedShopItem(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
+        public static ISalable GetClickedShopItem(IReflectionHelper reflection, ShopMenu shopMenu, Point p)
         {
-            var itemsForSale = reflection.GetField<List<Item>>(shopMenu, "forSale").GetValue();
+            var itemsForSale = reflection.GetField<List<ISalable>>(shopMenu, "forSale").GetValue();
             int index = GetClickedItemIndex(reflection, shopMenu, p);
             Debug.Assert(index < itemsForSale.Count);
             return index >= 0 ? itemsForSale[index] : null;
