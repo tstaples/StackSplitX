@@ -127,7 +127,18 @@ namespace StackSplitX.MenuHandlers
                     }
 
                     // Store where the player clicked to pass to the native code after the split menu has been submitted so it remains the same even if the mouse moved.
-                    this.ClickItemLocation = new Point(Game1.getOldMouseX(), Game1.getOldMouseY());
+                    // Patcher note:
+                    // Starting SDV 1.5, there are two coordinate systems on-screen: "UI Mode" and "Non UI Mode". This is because now the UI can be zoomed separately
+                    // from the game world. As a result, grabbing mouse coordinates may cause problems if UI Zoom is not the same as Gameworld Zoom.
+                    // For some reasons, if not explicitly specified with "true" below, getOldMouseX/Y here will retrieve the "Non UI Mode" coordinate, passing that to
+                    // the native code causing the native code to 'hit' on the wrong item when doing the stack-splitting. As a result, the pointed-to item gets deducted,
+                    // but the transferred item will be a different item altogether, and if the item was the last item, it's possible that the transferred item will be
+                    // 'null', causing the player to lose the original item.
+                    // For more information:
+                    //   1) https://stardewvalleywiki.com/Modding:Migrate_to_Stardew_Valley_1.5#UI_scale_changes
+                    //   2) https://stardewvalleywiki.com/Modding:Modder_Guide/Game_Fundamentals#UI_scaling
+                    this.ClickItemLocation = new Point(Game1.getOldMouseX(true), Game1.getOldMouseY(true));
+                    Monitor.Log($"BaseMenuHandler.HandleInput.ClickItemLocation = {ClickItemLocation}");
 
                     // Notify the handler the inventory was clicked.
                     if (this.HasInventory && !this.Inventory.Initialized)
