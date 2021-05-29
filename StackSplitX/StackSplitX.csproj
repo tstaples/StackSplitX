@@ -3,20 +3,24 @@
   <PropertyGroup>
     <AssemblyName>StackSplitX</AssemblyName>
     <RootNamespace>StackSplitX</RootNamespace>
-    <Version>1.5.1-unofficial.2-mizzion</Version>
+    <Version>1.5.1-unofficial.5-mizzion</Version>
     <TargetFramework>net452</TargetFramework>
-    <Platforms>x86</Platforms>
-    <PlatformTarget>x86</PlatformTarget>
+    <Platforms>AnyCPU</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
 
     <EnableHarmony>false</EnableHarmony>
+
+    <AssemblyVersion>1.5.1.5</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="3.0.0" />
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="3.3.0" />
   </ItemGroup>
 
 </Project>
